@@ -1,0 +1,200 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>考试结果 - 在线培训考试系统</title>
+    <link rel="stylesheet" href="https://unpkg.com/layui@2.9.23/dist/css/layui.css">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'PingFang SC', sans-serif; background: #F5F7FA; color: #333; }
+        .page-header {
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            padding: 12px 16px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            color: #fff;
+            position: sticky;
+            top: 0;
+            z-index: 10;
+        }
+        .back-btn { font-size: 18px; cursor: pointer; padding: 4px; }
+        .page-header h1 { font-size: 17px; font-weight: 600; flex: 1; }
+        .content { padding: 16px; }
+        .card, .question-card, .empty-card {
+            background: #fff;
+            border-radius: 14px;
+            box-shadow: 0 1px 8px rgba(0, 0, 0, 0.06);
+            overflow: hidden;
+        }
+        .hero {
+            padding: 20px;
+            color: #fff;
+            background: linear-gradient(135deg, #43A047, #2E7D32);
+            border-radius: 14px;
+        }
+        .hero.fail { background: linear-gradient(135deg, #FF7043, #E64A19); }
+        .hero-title { font-size: 18px; font-weight: 700; margin-bottom: 8px; }
+        .hero-meta { font-size: 13px; opacity: 0.9; line-height: 1.7; }
+        .score-card { margin-top: 14px; background: rgba(255,255,255,0.16); border-radius: 12px; padding: 16px; display: flex; justify-content: space-between; gap: 12px; }
+        .score-item { flex: 1; }
+        .score-num { display: block; font-size: 26px; font-weight: 800; }
+        .score-label { font-size: 12px; opacity: 0.85; }
+        .stats-row { display: flex; gap: 10px; margin-top: 14px; }
+        .stats-box { flex: 1; background: #fff; border-radius: 12px; padding: 14px; text-align: center; }
+        .stats-num { display: block; font-size: 20px; font-weight: 700; color: #333; }
+        .stats-label { font-size: 12px; color: #999; margin-top: 4px; }
+        .section-title { margin: 18px 4px 12px; font-size: 16px; font-weight: 700; }
+        .question-card { padding: 16px; margin-bottom: 14px; }
+        .q-head { display: flex; justify-content: space-between; gap: 10px; align-items: flex-start; margin-bottom: 10px; }
+        .q-title { font-size: 14px; font-weight: 700; color: #333; line-height: 1.6; }
+        .q-badge {
+            padding: 3px 8px;
+            border-radius: 999px;
+            font-size: 12px;
+            flex-shrink: 0;
+        }
+        .q-badge.right { background: #E8F5E9; color: #43A047; }
+        .q-badge.wrong { background: #FFEBEE; color: #F44336; }
+        .q-meta { margin-top: 10px; font-size: 13px; color: #666; line-height: 1.8; }
+        .q-meta strong { color: #333; }
+        .q-analysis { margin-top: 12px; padding-top: 12px; border-top: 1px dashed #EEF2F6; font-size: 13px; color: #666; line-height: 1.7; }
+        .empty-card { padding: 48px 20px; text-align: center; color: #999; }
+        .empty-card i { display: block; font-size: 42px; margin-bottom: 12px; color: #C0C4CC; }
+        .action-row { display: flex; gap: 12px; margin-top: 16px; }
+        .action-btn {
+            border: none;
+            border-radius: 999px;
+            padding: 11px 18px;
+            font-size: 14px;
+            cursor: pointer;
+            flex: 1;
+        }
+        .action-btn.primary { background: linear-gradient(135deg, #667eea, #764ba2); color: #fff; }
+        .action-btn.secondary { background: #fff; border: 1px solid #D9E1EA; color: #555; }
+    </style>
+</head>
+<body>
+    <div class="page-header">
+        <div class="back-btn" onclick="goBack()"><i class="layui-icon layui-icon-left"></i></div>
+        <h1>考试结果</h1>
+    </div>
+
+    <div class="content">
+        <div id="resultRoot" class="card">
+            <div class="empty-card"><i class="layui-icon layui-icon-loading-1"></i><p>加载中...</p></div>
+        </div>
+        <div id="questionRoot"></div>
+    </div>
+
+    <script src="https://unpkg.com/jquery@3.7.1/dist/jquery.min.js"></script>
+    <script src="https://unpkg.com/layui@2.9.23/dist/layui.js"></script>
+    <script src="api.js"></script>
+    <script>
+        if (!Api.checkLogin()) {}
+
+        var recordId = new URLSearchParams(location.search).get('id') || '';
+        var recordData = null;
+
+        function safe(value) {
+            return String(value == null ? '' : value)
+                .replace(/&/g, '&amp;')
+                .replace(/</g, '&lt;')
+                .replace(/>/g, '&gt;')
+                .replace(/"/g, '&quot;')
+                .replace(/'/g, '&#39;');
+        }
+
+        function goBack() {
+            if (document.referrer) {
+                history.back();
+            } else {
+                location.href = 'record.html';
+            }
+        }
+
+        function formatDuration(seconds) {
+            seconds = Number(seconds || 0);
+            var minutes = Math.floor(seconds / 60);
+            var secs = seconds % 60;
+            return minutes + '分' + secs + '秒';
+        }
+
+        function loadResult() {
+            if (!recordId) {
+                document.getElementById('resultRoot').innerHTML = '<div class="empty-card"><i class="layui-icon layui-icon-chart"></i><p>记录参数缺失</p></div>';
+                return;
+            }
+
+            Api.getExamRecord(recordId).then(function(res) {
+                if (res.code !== 200 || !res.data) {
+                    document.getElementById('resultRoot').innerHTML = '<div class="empty-card"><i class="layui-icon layui-icon-chart"></i><p>' + safe(res.msg || '结果加载失败') + '</p></div>';
+                    return;
+                }
+                recordData = res.data;
+                renderResult();
+            }).catch(function() {
+                document.getElementById('resultRoot').innerHTML = '<div class="empty-card"><i class="layui-icon layui-icon-chart"></i><p>结果加载失败</p></div>';
+            });
+        }
+
+        function renderResult() {
+            var record = recordData || {};
+            var pass = Number(record.pass_status || 0) === 1;
+            var questions = Array.isArray(record.questions) ? record.questions : [];
+
+            document.getElementById('resultRoot').innerHTML = ''
+                + '<div class="hero ' + (pass ? '' : 'fail') + '">'
+                + '  <div class="hero-title">' + safe(record.paper_title || '考试结果') + '</div>'
+                + '  <div class="hero-meta">'
+                + '    开始时间：' + safe((record.start_time || '').slice(0, 19)) + '<br>'
+                + '    提交时间：' + safe((record.submit_time || '').slice(0, 19)) + '<br>'
+                + '    用时：' + safe(formatDuration(record.duration || 0))
+                + '  </div>'
+                + '  <div class="score-card">'
+                + '    <div class="score-item"><span class="score-num">' + Number(record.score || 0) + '</span><span class="score-label">得分</span></div>'
+                + '    <div class="score-item"><span class="score-num">' + Number(record.total_score || 0) + '</span><span class="score-label">总分</span></div>'
+                + '  </div>'
+                + '  <div class="stats-row">'
+                + '    <div class="stats-box"><span class="stats-num">' + Number(record.correct_count || 0) + '</span><span class="stats-label">正确</span></div>'
+                + '    <div class="stats-box"><span class="stats-num">' + Number(record.wrong_count || 0) + '</span><span class="stats-label">错误</span></div>'
+                + '    <div class="stats-box"><span class="stats-num">' + (pass ? '及格' : '未及格') + '</span><span class="stats-label">结果</span></div>'
+                + '  </div>'
+                + '</div>'
+                + '<div class="action-row">'
+                + '  <button class="action-btn primary" onclick="goBack()">返回列表</button>'
+                + '  <button class="action-btn secondary" onclick="location.href=\'exam.html\'">继续考试</button>'
+                + '</div>';
+
+            if (!questions.length) {
+                document.getElementById('questionRoot').innerHTML = '<div class="section-title">答卷详情</div><div class="empty-card"><i class="layui-icon layui-icon-form"></i><p>暂无答卷明细</p></div>';
+                return;
+            }
+
+            document.getElementById('questionRoot').innerHTML = '<div class="section-title">答卷详情</div>' + questions.map(function(q, index) {
+                var isRight = Number(q.is_correct || 0) === 1;
+                var options = Array.isArray(q.options) ? q.options.map(function(opt) {
+                    return '<div style="font-size:13px;color:#666;line-height:1.6;margin-top:4px;">' + safe(opt.label || '') + '. ' + safe(opt.content || '') + '</div>';
+                }).join('') : '';
+
+                return ''
+                    + '<div class="question-card">'
+                    + '  <div class="q-head">'
+                    + '    <div class="q-title">' + (index + 1) + '. ' + safe(q.stem || '') + '</div>'
+                    + '    <span class="q-badge ' + (isRight ? 'right' : 'wrong') + '">' + (isRight ? '正确' : '错误') + '</span>'
+                    + '  </div>'
+                    + '  <div class="q-meta">'
+                    + '    <div><strong>你的答案：</strong>' + safe(q.user_answer || '--') + '</div>'
+                    + '    <div><strong>正确答案：</strong>' + safe(q.correct_answer || '--') + '</div>'
+                    + '  </div>'
+                    + (options ? '<div style="margin-top:12px;border-top:1px dashed #EEF2F6;padding-top:12px;"><strong style="font-size:13px;color:#333;">选项</strong>' + options + '</div>' : '')
+                    + (q.analysis ? '<div class="q-analysis"><strong style="color:#333;">解析：</strong>' + safe(q.analysis) + '</div>' : '')
+                    + '</div>';
+            }).join('');
+        }
+
+        loadResult();
+    </script>
+</body>
+</html>

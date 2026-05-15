@@ -1,0 +1,195 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>知识详情 - 在线培训考试系统</title>
+    <link rel="stylesheet" href="https://unpkg.com/layui@2.9.23/dist/css/layui.css">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'PingFang SC', sans-serif; background: #F5F7FA; color: #333; }
+        .page-header {
+            background: linear-gradient(135deg, #1890FF, #0050B3);
+            padding: 12px 16px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            color: #fff;
+            position: sticky;
+            top: 0;
+            z-index: 10;
+        }
+        .back-btn { font-size: 18px; cursor: pointer; padding: 4px; }
+        .page-header h1 { font-size: 17px; font-weight: 600; flex: 1; }
+        .content { padding: 16px; }
+        .card, .body-card, .empty-card {
+            background: #fff;
+            border-radius: 14px;
+            box-shadow: 0 1px 8px rgba(0, 0, 0, 0.06);
+            overflow: hidden;
+        }
+        .cover {
+            width: 100%;
+            height: 180px;
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #fff;
+            font-size: 52px;
+        }
+        .hero { padding: 16px 18px 18px; }
+        .title { font-size: 20px; font-weight: 700; margin-bottom: 8px; line-height: 1.4; }
+        .meta-row { display: flex; flex-wrap: wrap; gap: 10px 14px; font-size: 12px; color: #999; margin-top: 12px; }
+        .meta-tag {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            padding: 3px 8px;
+            border-radius: 999px;
+            background: #EEF5FF;
+            color: #1890FF;
+        }
+        .section-title { margin: 18px 4px 12px; font-size: 16px; font-weight: 700; }
+        .body-card { padding: 16px; }
+        .body-content { font-size: 14px; color: #555; line-height: 1.8; }
+        .body-content img { max-width: 100%; height: auto; border-radius: 12px; display: block; margin: 10px 0; }
+        .body-content video, .body-content audio { width: 100%; margin-top: 12px; border-radius: 12px; }
+        .file-box {
+            margin-top: 12px;
+            padding: 14px;
+            border-radius: 12px;
+            background: #F9FBFD;
+            border: 1px solid #EEF2F6;
+        }
+        .file-link {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            color: #1890FF;
+            text-decoration: none;
+            font-size: 14px;
+            font-weight: 600;
+        }
+        .empty-card { padding: 48px 20px; text-align: center; color: #999; }
+        .empty-card i { display: block; font-size: 42px; margin-bottom: 12px; color: #C0C4CC; }
+    </style>
+</head>
+<body>
+    <div class="page-header">
+        <div class="back-btn" onclick="goBack()"><i class="layui-icon layui-icon-left"></i></div>
+        <h1>知识详情</h1>
+    </div>
+
+    <div class="content">
+        <div id="detailRoot" class="card">
+            <div class="empty-card"><i class="layui-icon layui-icon-loading-1"></i><p>加载中...</p></div>
+        </div>
+    </div>
+
+    <script src="https://unpkg.com/jquery@3.7.1/dist/jquery.min.js"></script>
+    <script src="https://unpkg.com/layui@2.9.23/dist/layui.js"></script>
+    <script src="api.js"></script>
+    <script>
+        if (!Api.checkLogin()) {}
+
+        var knowledgeId = new URLSearchParams(location.search).get('id') || '';
+        var knowledgeData = null;
+
+        function safe(value) {
+            return String(value == null ? '' : value)
+                .replace(/&/g, '&amp;')
+                .replace(/</g, '&lt;')
+                .replace(/>/g, '&gt;')
+                .replace(/"/g, '&quot;')
+                .replace(/'/g, '&#39;');
+        }
+
+        function goBack() {
+            if (document.referrer) {
+                history.back();
+            } else {
+                location.href = 'knowledge.html';
+            }
+        }
+
+        function getTypeText(type) {
+            var map = { video: '视频', audio: '音频', document: '文档', image: '图片', file: '附件' };
+            return map[type] || '内容';
+        }
+
+        function getTypeIcon(type) {
+            var map = { video: 'layui-icon-video', audio: 'layui-icon-headset', document: 'layui-icon-read', image: 'layui-icon-picture', file: 'layui-icon-file' };
+            return map[type] || 'layui-icon-read';
+        }
+
+        function getDurationText(seconds) {
+            seconds = Number(seconds || 0);
+            if (!seconds) return '0:00';
+            var minutes = Math.floor(seconds / 60);
+            var secs = seconds % 60;
+            return minutes + ':' + String(secs).padStart(2, '0');
+        }
+
+        function loadDetail() {
+            if (!knowledgeId) {
+                document.getElementById('detailRoot').innerHTML = '<div class="empty-card"><i class="layui-icon layui-icon-read"></i><p>知识参数缺失</p></div>';
+                return;
+            }
+
+            Api.getKnowledgeDetail(knowledgeId).then(function(res) {
+                if (res.code !== 200 || !res.data) {
+                    document.getElementById('detailRoot').innerHTML = '<div class="empty-card"><i class="layui-icon layui-icon-read"></i><p>' + safe(res.msg || '知识加载失败') + '</p></div>';
+                    return;
+                }
+                knowledgeData = res.data;
+                renderDetail();
+            }).catch(function() {
+                document.getElementById('detailRoot').innerHTML = '<div class="empty-card"><i class="layui-icon layui-icon-read"></i><p>知识加载失败</p></div>';
+            });
+        }
+
+        function renderPreview(knowledge) {
+            var type = knowledge.type || 'document';
+            var fileUrl = knowledge.file_url || '';
+            var content = knowledge.content || '';
+
+            if (type === 'image' && (fileUrl || knowledge.cover)) {
+                return '<img src="' + safe(fileUrl || knowledge.cover) + '" alt="preview" style="max-width:100%;border-radius:12px;">';
+            }
+            if (type === 'video' && fileUrl) {
+                return '<video controls src="' + safe(fileUrl) + '"></video>';
+            }
+            if (type === 'audio' && fileUrl) {
+                return '<audio controls src="' + safe(fileUrl) + '"></audio>';
+            }
+            if (type === 'file') {
+                return '<div class="file-box"><a class="file-link" href="' + safe(fileUrl || '#') + '" target="_blank"><i class="layui-icon layui-icon-download-circle"></i>打开附件</a></div>';
+            }
+            return '<div class="body-content">' + (content || '<p style="color:#999;">暂无正文内容</p>') + '</div>';
+        }
+
+        function renderDetail() {
+            var knowledge = knowledgeData || {};
+            var cover = knowledge.cover ? ('<img src="' + safe(knowledge.cover) + '" alt="cover" style="width:100%;height:180px;object-fit:cover;display:block;">') : '<div class="cover"><i class="layui-icon ' + getTypeIcon(knowledge.type) + '"></i></div>';
+            var preview = renderPreview(knowledge);
+
+            document.getElementById('detailRoot').innerHTML = ''
+                + cover
+                + '<div class="hero">'
+                + '  <div class="title">' + safe(knowledge.title || '未命名知识') + '</div>'
+                + '  <div class="meta-row">'
+                + '    <span class="meta-tag"><i class="layui-icon ' + getTypeIcon(knowledge.type) + '"></i>' + safe(getTypeText(knowledge.type)) + '</span>'
+                + '    <span><i class="layui-icon layui-icon-eye"></i>' + Number(knowledge.view_count || 0) + ' 次浏览</span>'
+                + '    <span><i class="layui-icon layui-icon-file"></i>' + safe(knowledge.file_size_format || '0 B') + '</span>'
+                + '    <span><i class="layui-icon layui-icon-time"></i>' + safe((knowledge.created_at || '').slice(0, 16)) + '</span>'
+                + '  </div>'
+                + '</div>'
+                + '<div class="section-title">内容详情</div>'
+                + '<div class="body-card">' + preview + '</div>';
+        }
+
+        loadDetail();
+    </script>
+</body>
+</html>

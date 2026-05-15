@@ -1,0 +1,7 @@
+{
+  "desc": "关于本sitemap文件说明",
+  "rules": [{
+    "action": "allow",
+    "page": "*"
+  }]
+}

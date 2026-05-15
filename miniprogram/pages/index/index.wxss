@@ -1,0 +1,183 @@
+/* miniprogram/pages/index/index.wxss */
+.page {
+  min-height: 100vh;
+  background: #f5f7fa;
+}
+
+.user-card {
+  background: linear-gradient(135deg, #1890FF 0%, #0050B3 100%);
+  padding: 40rpx 32rpx;
+  color: #fff;
+}
+
+.user-info {
+  display: flex;
+  align-items: center;
+  margin-bottom: 32rpx;
+}
+
+.avatar {
+  width: 100rpx;
+  height: 100rpx;
+  border-radius: 50rpx;
+  border: 4rpx solid rgba(255, 255, 255, 0.3);
+  margin-right: 24rpx;
+}
+
+.info .name {
+  display: block;
+  font-size: 36rpx;
+  font-weight: 600;
+  margin-bottom: 8rpx;
+}
+
+.info .company {
+  display: block;
+  font-size: 26rpx;
+  opacity: 0.8;
+}
+
+.user-stats {
+  display: flex;
+  justify-content: space-around;
+  background: rgba(255, 255, 255, 0.15);
+  border-radius: 16rpx;
+  padding: 24rpx 0;
+}
+
+.stat-item {
+  text-align: center;
+}
+
+.stat-num {
+  display: block;
+  font-size: 40rpx;
+  font-weight: 700;
+}
+
+.stat-label {
+  display: block;
+  font-size: 22rpx;
+  opacity: 0.8;
+  margin-top: 6rpx;
+}
+
+.section {
+  margin: 24rpx;
+}
+
+.section-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 20rpx;
+}
+
+.section-title {
+  font-size: 32rpx;
+  font-weight: 600;
+  color: #333;
+}
+
+.section-more {
+  font-size: 26rpx;
+  color: #1890FF;
+}
+
+.task-list {
+  background: #fff;
+  border-radius: 16rpx;
+  overflow: hidden;
+}
+
+.task-card {
+  display: flex;
+  padding: 28rpx;
+  border-bottom: 1rpx solid #f5f5f5;
+}
+
+.task-card:last-child {
+  border-bottom: none;
+}
+
+.task-cover {
+  width: 100rpx;
+  height: 100rpx;
+  border-radius: 12rpx;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-right: 24rpx;
+  flex-shrink: 0;
+}
+
+.task-icon {
+  font-size: 48rpx;
+  color: #fff;
+}
+
+.task-info {
+  flex: 1;
+}
+
+.task-title {
+  display: block;
+  font-size: 30rpx;
+  font-weight: 500;
+  color: #333;
+  margin-bottom: 12rpx;
+}
+
+.task-meta {
+  display: flex;
+  justify-content: space-between;
+  font-size: 24rpx;
+  color: #999;
+  margin-bottom: 10rpx;
+}
+
+.progress-bar {
+  height: 8rpx;
+  background: #f0f0f0;
+  border-radius: 4rpx;
+  overflow: hidden;
+}
+
+.progress-fill {
+  height: 100%;
+  background: linear-gradient(90deg, #1890FF, #0050B3);
+  border-radius: 4rpx;
+  transition: width 0.3s;
+}
+
+.quick-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 20rpx;
+  background: #fff;
+  border-radius: 16rpx;
+  padding: 32rpx;
+}
+
+.quick-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.quick-icon {
+  width: 88rpx;
+  height: 88rpx;
+  border-radius: 20rpx;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 16rpx;
+  color: #fff;
+  font-size: 40rpx;
+}
+
+.quick-label {
+  font-size: 24rpx;
+  color: #666;
+}

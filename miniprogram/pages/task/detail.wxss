@@ -1,0 +1,128 @@
+/* miniprogram/pages/task/detail.wxss */
+.page {
+  min-height: 100vh;
+  background: #f5f7fa;
+  padding: 24rpx;
+}
+
+.hero-card,
+.stage-card {
+  background: #fff;
+  border-radius: 20rpx;
+  padding: 28rpx;
+  box-shadow: 0 4rpx 20rpx rgba(0, 0, 0, 0.06);
+  margin-bottom: 24rpx;
+}
+
+.hero-top,
+.stage-top {
+  display: flex;
+  justify-content: space-between;
+  gap: 20rpx;
+  align-items: center;
+  margin-bottom: 16rpx;
+}
+
+.title {
+  flex: 1;
+  font-size: 34rpx;
+  font-weight: 700;
+  color: #333;
+}
+
+.tag,
+.stage-tag {
+  padding: 8rpx 20rpx;
+  border-radius: 999rpx;
+  background: #eef5ff;
+  color: #1890FF;
+  font-size: 24rpx;
+  flex-shrink: 0;
+}
+
+.desc {
+  display: block;
+  font-size: 26rpx;
+  color: #666;
+  line-height: 1.7;
+}
+
+.meta-row,
+.stage-meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 16rpx 20rpx;
+  margin-top: 16rpx;
+  font-size: 24rpx;
+  color: #999;
+}
+
+.progress-bar {
+  height: 8rpx;
+  background: #f0f0f0;
+  border-radius: 4rpx;
+  overflow: hidden;
+  margin-top: 16rpx;
+}
+
+.progress-fill {
+  height: 100%;
+  background: linear-gradient(90deg, #1890FF, #0050B3);
+}
+
+.action-group {
+  display: flex;
+  gap: 20rpx;
+  margin-top: 20rpx;
+}
+
+.btn {
+  flex: 1;
+  height: 84rpx;
+  border-radius: 42rpx;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 30rpx;
+  font-weight: 600;
+}
+
+.btn.primary {
+  background: linear-gradient(135deg, #1890FF 0%, #0050B3 100%);
+  color: #fff;
+}
+
+.btn.secondary {
+  background: #fff;
+  border: 2rpx solid #d9e1ea;
+  color: #555;
+}
+
+.section-title {
+  font-size: 30rpx;
+  font-weight: 700;
+  color: #333;
+  margin: 8rpx 4rpx 16rpx;
+}
+
+.stage-top {
+  align-items: flex-start;
+}
+
+.stage-title {
+  flex: 1;
+  font-size: 30rpx;
+  font-weight: 600;
+  color: #333;
+}
+
+.stage-status {
+  display: block;
+  margin-top: 12rpx;
+  font-size: 24rpx;
+  color: #999;
+}
+
+.stage-status.done {
+  color: #43A047;
+}

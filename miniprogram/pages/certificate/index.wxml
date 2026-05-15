@@ -1,0 +1,37 @@
+<!-- miniprogram/pages/certificate/index.wxml -->
+<view class="page">
+  <view class="cert-list">
+    <view class="cert-card" wx:for="{{certificates}}" wx:key="id" bindtap="viewDetail" data-id="{{item.id}}">
+      <view class="cert-header">
+        <view class="cert-icon">
+          <text>&#xe604;</text>
+        </view>
+        <view class="cert-status {{item.status === 1 ? 'valid' : 'invalid'}}">
+          {{item.status === 1 ? '有效' : item.status === 2 ? '已撤销' : '已过期'}}
+        </view>
+      </view>
+      <view class="cert-info">
+        <text class="cert-title">{{item.task_title || '培训证书'}}</text>
+        <view class="cert-meta">
+          <text>证书编号：{{item.cert_no}}</text>
+          <text>颁发日期：{{item.issue_date}}</text>
+          <text wx:if="{{item.expire_date}}">有效期至：{{item.expire_date}}</text>
+        </view>
+      </view>
+      <view class="cert-arrow">
+        <text>&#xe60c;</text>
+      </view>
+    </view>
+  </view>
+
+  <view class="loading-more" wx:if="{{loading}}">
+    <text>加载中...</text>
+  </view>
+  <view class="no-more" wx:if="{{!hasMore && certificates.length > 0}}">
+    <text>没有更多了</text>
+  </view>
+  <view class="empty-state" wx:if="{{certificates.length === 0 && !loading}}">
+    <image src="/assets/images/empty.png" mode="aspectFit"></image>
+    <text>暂无证书</text>
+  </view>
+</view>

@@ -1,0 +1,37 @@
+<!-- miniprogram/pages/exam/answers.wxml -->
+<view class="page" wx:if="{{record}}">
+  <view class="hero-card {{record.pass_status == 1 ? 'pass' : 'fail'}}">
+    <text class="hero-title">{{record.paper_title || '答卷详情'}}</text>
+    <view class="hero-meta">
+      <text>得分 {{record.score || 0}} / {{record.total_score || 0}}</text>
+      <text>正确 {{record.correct_count || 0}} 题</text>
+      <text>错误 {{record.wrong_count || 0}} 题</text>
+    </view>
+  </view>
+
+  <view class="section-title">题目明细</view>
+  <view class="question-card" wx:for="{{record.questions}}" wx:key="id">
+    <view class="question-top">
+      <text class="question-title">{{index + 1}}. {{item.stem}}</text>
+      <text class="question-tag {{item.is_correct ? 'right' : 'wrong'}}">{{item.is_correct ? '正确' : '错误'}}</text>
+    </view>
+    <view class="question-meta">
+      <text>你的答案：{{item.user_answer || '--'}}</text>
+      <text>正确答案：{{item.correct_answer || '--'}}</text>
+    </view>
+    <view class="option-list" wx:if="{{item.options && item.options.length}}">
+      <view class="option-item" wx:for="{{item.options}}" wx:key="label">
+        <text class="option-label">{{item.label}}.</text>
+        <text class="option-text">{{item.content}}</text>
+      </view>
+    </view>
+    <view class="analysis" wx:if="{{item.analysis}}">
+      <text class="analysis-title">解析</text>
+      <text class="analysis-text">{{item.analysis}}</text>
+    </view>
+  </view>
+
+  <view class="action-group">
+    <view class="btn primary" bindtap="goBack">返回</view>
+  </view>
+</view>

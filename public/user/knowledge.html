@@ -1,0 +1,176 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>知识库 - 在线培训考试系统</title>
+    <link rel="stylesheet" href="https://unpkg.com/layui@2.9.23/dist/css/layui.css">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        html, body { height: 100%; background: #F5F7FA; }
+        body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'PingFang SC', sans-serif; }
+
+        .page-header {
+            background: linear-gradient(135deg, #1890FF, #0050B3);
+            padding: 12px 16px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            color: #fff;
+            position: sticky;
+            top: 0;
+            z-index: 10;
+        }
+        .page-header .back-btn {
+            font-size: 18px;
+            cursor: pointer;
+            padding: 4px;
+        }
+        .page-header h1 { font-size: 17px; font-weight: 600; flex: 1; }
+
+        .search-bar {
+            padding: 12px 16px;
+            background: #fff;
+            border-bottom: 1px solid #f0f0f0;
+        }
+        .search-input {
+            width: 100%;
+            height: 38px;
+            padding: 0 16px;
+            border: 1px solid #e8e8e8;
+            border-radius: 19px;
+            font-size: 14px;
+            outline: none;
+            background: #F5F7FA;
+            transition: border-color 0.2s;
+        }
+        .search-input:focus { border-color: #1890FF; background: #fff; }
+
+        .category-scroll {
+            display: flex;
+            gap: 8px;
+            padding: 12px 16px;
+            overflow-x: auto;
+            background: #fff;
+            -webkit-overflow-scrolling: touch;
+            scrollbar-width: none;
+        }
+        .category-scroll::-webkit-scrollbar { display: none; }
+        .cat-chip {
+            padding: 5px 14px;
+            border-radius: 16px;
+            font-size: 13px;
+            background: #f0f0f0;
+            color: #666;
+            white-space: nowrap;
+            cursor: pointer;
+            flex-shrink: 0;
+            transition: all 0.2s;
+        }
+        .cat-chip.active { background: #1890FF; color: #fff; }
+
+        .content-list { padding: 0 16px 20px; }
+        .kb-item {
+            background: #fff;
+            border-radius: 12px;
+            padding: 16px;
+            margin-top: 12px;
+            box-shadow: 0 1px 6px rgba(0,0,0,0.06);
+            cursor: pointer;
+        }
+        .kb-item:active { background: #f8f9ff; }
+        .kb-title { font-size: 15px; font-weight: 600; color: #333; margin-bottom: 8px; }
+        .kb-summary { font-size: 13px; color: #888; line-height: 1.5; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+        .kb-footer { display: flex; justify-content: space-between; margin-top: 10px; font-size: 12px; color: #bbb; }
+        .empty-state { text-align: center; padding: 60px 20px; color: #c0c0c0; }
+        .empty-state i { font-size: 48px; margin-bottom: 12px; display: block; }
+    </style>
+</head>
+<body>
+    <div class="page-header">
+        <div class="back-btn" onclick="location.href='index.html'"><i class="layui-icon layui-icon-left"></i></div>
+        <h1>知识库</h1>
+    </div>
+
+    <div class="search-bar">
+        <input type="text" class="search-input" id="searchInput" placeholder="搜索知识..." oninput="filterList()">
+    </div>
+
+    <div class="category-scroll" id="categoryScroll"></div>
+
+    <div class="content-list" id="contentList">
+        <div class="empty-state"><i class="layui-icon layui-icon-loading-1"></i><p>加载中...</p></div>
+    </div>
+
+    <script src="https://unpkg.com/jquery@3.7.1/dist/jquery.min.js"></script>
+    <script src="https://unpkg.com/layui@2.9.23/dist/layui.js"></script>
+    <script src="api.js"></script>
+    <script>
+        if (!Api.checkLogin()) {}
+
+        var allData = [];
+        var activeCat = 0;
+
+        function loadData() {
+            Api.getKnowledgeList(1, 100).then(function(res) {
+                if (res.code === 200 && res.data && res.data.length > 0) {
+                    allData = res.data;
+                    renderCats();
+                    renderList(0, '');
+                } else {
+                    document.getElementById('contentList').innerHTML = '<div class="empty-state"><i class="layui-icon layui-icon-read"></i><p>暂无知识内容</p></div>';
+                }
+            }).catch(function() {
+                document.getElementById('contentList').innerHTML = '<div class="empty-state"><i class="layui-icon layui-icon-read"></i><p>加载失败</p></div>';
+            });
+        }
+
+        function renderCats() {
+            var cats = [];
+            allData.forEach(function(k) { if (k.category_id && cats.indexOf(k.category_id) < 0) cats.push(k.category_id); });
+            document.getElementById('categoryScroll').innerHTML =
+                '<div class="cat-chip active" onclick="selectCat(0, this)">全部</div>' +
+                cats.map(function(c) {
+                    return '<div class="cat-chip" onclick="selectCat(' + c + ', this)">分类' + c + '</div>';
+                }).join('');
+        }
+
+        function selectCat(cat, el) {
+            activeCat = cat;
+            document.querySelectorAll('.cat-chip').forEach(function(c) { c.classList.remove('active'); });
+            el.classList.add('active');
+            var kw = document.getElementById('searchInput').value.trim();
+            renderList(cat, kw);
+        }
+
+        function filterList() {
+            var kw = document.getElementById('searchInput').value.trim();
+            renderList(activeCat, kw);
+        }
+
+        function renderList(cat, kw) {
+            var filtered = allData.filter(function(k) {
+                var matchCat = cat === 0 || k.category_id === cat;
+                var matchKw = !kw || (k.title && k.title.indexOf(kw) >= 0) || (k.description && k.description.indexOf(kw) >= 0);
+                return matchCat && matchKw;
+            });
+
+            if (filtered.length === 0) {
+                document.getElementById('contentList').innerHTML = '<div class="empty-state"><i class="layui-icon layui-icon-read"></i><p>没有找到相关知识</p></div>';
+                return;
+            }
+
+            document.getElementById('contentList').innerHTML = filtered.map(function(k) {
+                var summary = (k.description || '').replace(/<[^>]+>/g, '').substring(0, 80);
+                return '<div class="kb-item" onclick="location.href=\'knowledge-detail.html?id=' + k.id + '\'">'
+                    + '<div class="kb-title">' + k.title + '</div>'
+                    + '<div class="kb-summary">' + (summary || '暂无描述') + '</div>'
+                    + '<div class="kb-footer"><span>' + (k.created_at ? k.created_at.substring(0,10) : '') + '</span><span>查看详情 &gt;</span></div>'
+                    + '</div>';
+            }).join('');
+        }
+
+        loadData();
+    </script>
+</body>
+</html>

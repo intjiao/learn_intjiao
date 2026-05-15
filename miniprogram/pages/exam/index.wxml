@@ -1,0 +1,49 @@
+<!-- miniprogram/pages/exam/index.wxml -->
+<view class="page">
+  <view class="tab-bar">
+    <view class="tab-item {{activeTab === index ? 'active' : ''}}" wx:for="{{tabs}}" wx:key="index"
+      bindtap="switchTab" data-index="{{index}}">
+      <text>{{item}}</text>
+    </view>
+  </view>
+
+  <view class="exam-list">
+    <view class="exam-card" wx:for="{{papers}}" wx:key="id">
+      <view class="exam-info">
+        <text class="exam-title">{{item.title || '试卷'}}</text>
+        <view class="exam-meta">
+          <text wx:if="{{item.is_finished}}">得分：{{item.latest_record && item.latest_record.score || 0}}分</text>
+          <text wx:elif="{{item.can_resume}}">进行中</text>
+          <text wx:else>未作答</text>
+          <text>{{item.total_score || 100}}分</text>
+          <text>{{item.duration || 60}}分钟</text>
+        </view>
+        <view class="exam-time">
+          <text>{{item.valid_end ? '截止：' + item.valid_end : '长期有效'}}</text>
+        </view>
+      </view>
+      <view class="exam-action">
+        <view wx:if="{{item.is_finished}}" class="result-badge {{item.latest_record && item.latest_record.pass_status == 1 ? 'pass' : 'fail'}}">
+          {{item.latest_record && item.latest_record.pass_status == 1 ? '及格' : '不及格'}}
+        </view>
+        <view wx:if="{{!item.is_finished}}" class="btn-start" bindtap="startExam" data-id="{{item.paper_id}}">
+          {{item.can_resume ? '继续考试' : '开始考试'}}
+        </view>
+        <view wx:if="{{item.is_finished}}" class="btn-view" bindtap="viewResult" data-record-id="{{item.latest_record && item.latest_record.id}}">
+          查看结果
+        </view>
+      </view>
+    </view>
+  </view>
+
+  <view class="loading-more" wx:if="{{loading}}">
+    <text>加载中...</text>
+  </view>
+  <view class="no-more" wx:if="{{!hasMore && papers.length > 0}}">
+    <text>没有更多了</text>
+  </view>
+  <view class="empty-state" wx:if="{{papers.length === 0 && !loading}}">
+    <image src="/assets/images/empty.png" mode="aspectFit"></image>
+    <text>暂无可用考试</text>
+  </view>
+</view>

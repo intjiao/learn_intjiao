@@ -1,0 +1,185 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <title>阶段表单</title>
+  <link rel="stylesheet" href="../../vendor/layui/layui.css">
+  <link rel="stylesheet" href="../../css/admin.css">
+  <style>body { padding: 20px; background: #fff; }</style>
+</head>
+<body class="admin-embedded-page">
+<div class="admin-form-shell">
+<form class="layui-form" lay-filter="mainForm" style="max-width:500px;">
+  <div class="layui-form-item">
+    <label class="layui-form-label">阶段名称</label>
+    <div class="layui-input-block">
+      <input type="text" name="title" class="layui-input" lay-verify="required" placeholder="请输入阶段名称">
+    </div>
+  </div>
+  <div class="layui-form-item">
+    <label class="layui-form-label">阶段类型</label>
+    <div class="layui-input-block">
+      <select name="stage_type" id="selStageType">
+        <option value="course">课程</option>
+        <option value="exam">考试</option>
+        <option value="task">任务</option>
+      </select>
+    </div>
+  </div>
+  <div class="layui-form-item">
+    <label class="layui-form-label">关联ID</label>
+    <div class="layui-input-block">
+      <input type="number" name="target_id" class="layui-input" placeholder="关联的课程/考试/任务ID">
+    </div>
+  </div>
+  <div class="layui-form-item">
+    <label class="layui-form-label">排序</label>
+    <div class="layui-input-block">
+      <input type="number" name="sort" value="0" class="layui-input" style="width:200px;" min="0">
+    </div>
+  </div>
+  <div class="layui-form-item">
+    <label class="layui-form-label">阶段说明</label>
+    <div class="layui-input-block">
+      <textarea name="description" class="layui-textarea" placeholder="请输入阶段说明" rows="4"></textarea>
+    </div>
+  </div>
+  <div class="layui-form-item">
+    <label class="layui-form-label">状态</label>
+    <div class="layui-input-block">
+      <input type="checkbox" name="status" value="1" lay-skin="switch" lay-text="启用|禁用" checked>
+    </div>
+  </div>
+  <div class="layui-form-item">
+    <div class="layui-input-block">
+      <button class="layui-btn" lay-submit lay-filter="submitBtn">保存</button>
+      <button type="button" class="layui-btn layui-btn-primary" id="btnCancel">取消</button>
+    </div>
+  </div>
+</form>
+</div>
+<script src="../../vendor/jquery/jquery.min.js"></script>
+<script src="../../vendor/layui/layui.js"></script>
+<script>
+(function() {
+  var BASE_API = '../../';
+  var id = null;
+  var taskId = null;
+
+  function getQueryParam(name) {
+    var reg = new RegExp("(^|&)" + name + "=([^&]*)(&|$)", "i");
+    var r = window.location.search.substr(1).match(reg);
+    if (r != null) return decodeURIComponent(r[2]);
+    return null;
+  }
+
+  function getToken() {
+    return localStorage.getItem('admin_token') || '';
+  }
+
+  function ajax(opts) {
+    return $.ajax({
+      url: opts.url,
+      type: opts.type || 'GET',
+      data: opts.data || {},
+      dataType: 'json',
+      beforeSend: function(xhr) {
+        var t = getToken();
+        if (t) xhr.setRequestHeader('Admin-Token', t);
+      },
+      success: function(res) {
+        if (res.code === 401) {
+          localStorage.removeItem('admin_token');
+          localStorage.removeItem('admin_user');
+          parent.location.href = 'login.html';
+          return;
+        }
+        opts.success && opts.success(res);
+      },
+      error: function() {
+        layer.msg('请求失败', { icon: 2 });
+        opts.error && opts.error();
+      }
+    });
+  }
+
+  layui.use(['form', 'layer'], function() {
+    var form = layui.form;
+    var layer = layui.layer;
+
+    id = getQueryParam('id');
+    taskId = getQueryParam('task_id');
+
+    if (id) {
+      ajax({
+        url: BASE_API + 'task/' + taskId + '/stages',
+        success: function(res) {
+          if (res.code === 200) {
+            var current = (res.data || []).find(function(item) {
+              return String(item.id) === String(id);
+            });
+            if (!current) {
+              layer.msg('阶段不存在', { icon: 2 });
+              return;
+            }
+            form.val('mainForm', {
+              'title': current.title,
+              'stage_type': current.stage_type,
+              'target_id': current.target_id,
+              'sort': current.sort
+            });
+            form.render();
+          }
+        }
+      });
+    }
+
+    window.saveStage = function(callback) {
+      var formData = form.val('mainForm');
+      if (!taskId) {
+        layer.msg('缺少任务ID', { icon: 2 });
+        callback && callback(false);
+        return;
+      }
+
+      ajax({
+        url: BASE_API + 'task/' + taskId + '/stage',
+        type: 'POST',
+        data: {
+          id: id || '',
+          title: formData.title,
+          stage_type: formData.stage_type,
+          target_id: formData.target_id || '',
+          sort: formData.sort || 0
+        },
+        success: function(res) {
+          if (res.code === 200) {
+            layer.msg(id ? '更新成功' : '添加成功', { icon: 1 });
+            callback && callback(true);
+          } else {
+            layer.msg(res.msg || '操作失败', { icon: 2 });
+            callback && callback(false);
+          }
+        }
+      });
+    };
+
+    form.on('submit(submitBtn)', function() {
+      window.saveStage(function(success) {
+        if (success) {
+          var index = parent.layer.getFrameIndex(window.name);
+          parent.layer.close(index);
+        }
+      });
+      return false;
+    });
+
+    $('#btnCancel').on('click', function() {
+      var index = parent.layer.getFrameIndex(window.name);
+      parent.layer.close(index);
+    });
+  });
+})();
+</script>
+</body>
+</html>

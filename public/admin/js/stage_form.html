@@ -1,0 +1,132 @@
+<style>
+.required { color: #FF5722; margin-right: 4px; }
+</style>
+
+<div class="form-panel" style="padding:20px;max-width:600px;">
+    <form class="layui-form" lay-filter="stageForm" id="stageForm">
+        <input type="hidden" name="id" id="stageId">
+        <input type="hidden" name="task_id" id="taskId">
+
+        <div class="layui-form-item">
+            <label class="layui-form-label"><span class="required">*</span>阶段名称</label>
+            <div class="layui-input-block">
+                <input type="text" name="title" required lay-verify="required" placeholder="请输入阶段名称" class="layui-input">
+            </div>
+        </div>
+
+        <div class="layui-form-item">
+            <label class="layui-form-label">阶段类型</label>
+            <div class="layui-input-block">
+                <select name="type" id="stageType">
+                    <option value="1">学习</option>
+                    <option value="2">考试</option>
+                    <option value="3">实践</option>
+                </select>
+            </div>
+        </div>
+
+        <div class="layui-form-item">
+            <label class="layui-form-label">内容类型</label>
+            <div class="layui-input-block">
+                <select name="content_type">
+                    <option value="">自动</option>
+                    <option value="course">课程</option>
+                    <option value="exam">考试</option>
+                    <option value="practice">练习</option>
+                </select>
+            </div>
+        </div>
+
+        <div class="layui-form-item">
+            <label class="layui-form-label">关联ID</label>
+            <div class="layui-input-block">
+                <input type="number" name="content_id" placeholder="关联的课程/考试ID" class="layui-input" style="max-width:200px;">
+            </div>
+        </div>
+
+        <div class="layui-form-item">
+            <label class="layui-form-label">要求时长(分)</label>
+            <div class="layui-input-block">
+                <input type="number" name="duration" value="0" class="layui-input" style="width:120px;" min="0">
+            </div>
+        </div>
+
+        <div class="layui-form-item">
+            <label class="layui-form-label">及格分数</label>
+            <div class="layui-input-block">
+                <input type="number" name="pass_score" value="0" class="layui-input" style="width:120px;" min="0">
+            </div>
+        </div>
+
+        <div class="layui-form-item">
+            <label class="layui-form-label">排序</label>
+            <div class="layui-input-block">
+                <input type="number" name="sort" value="0" class="layui-input" style="width:100px;">
+            </div>
+        </div>
+    </form>
+</div>
+
+<script>
+var form;
+var q = location.search;
+var stageId = null;
+var taskId = null;
+var m;
+if (q) {
+    m = q.match(/[?&]id=(\d+)/);
+    if (m) stageId = m[1];
+    m = q.match(/[?&]task_id=(\d+)/);
+    if (m) taskId = m[1];
+}
+
+function getQueryParam(name) {
+    var reg = new RegExp("(^|&)" + name + "=([^&]*)(&|$)", "i");
+    var r = window.location.search.substr(1).match(reg);
+    if (r != null) return decodeURIComponent(r[2]);
+    return null;
+}
+
+layui.use(['form', 'layer'], function() {
+    form = layui.form;
+    var layer = layui.layer;
+
+    if (taskId) $('#taskId').val(taskId);
+
+    if (stageId) {
+        $.ajax({
+            url: '../../stage/' + stageId,
+            beforeSend: function(xhr) {
+                var token = localStorage.getItem('admin_token');
+                if (token) xhr.setRequestHeader('Admin-Token', token);
+            },
+            success: function(res) {
+                if (res.code === 200) {
+                    form.val('stageForm', res.data);
+                }
+            }
+        });
+    }
+
+    window.submitForm = function(callback) {
+        var url = stageId ? '../../stage/' + stageId : '../../task/' + taskId + '/stage';
+        var type = stageId ? 'PUT' : 'POST';
+        var data = form.val('stageForm');
+        $.ajax({
+            url: url, type: type, data: data,
+            beforeSend: function(xhr) {
+                var token = localStorage.getItem('admin_token');
+                if (token) xhr.setRequestHeader('Admin-Token', token);
+            },
+            success: function(res) {
+                if (res.code === 200) {
+                    parent.showSuccess(stageId ? '更新成功' : '添加成功');
+                    if (callback) callback();
+                } else {
+                    parent.showError(res.msg);
+                }
+            }
+        });
+    };
+});
+</script>

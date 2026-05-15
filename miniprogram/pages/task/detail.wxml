@@ -1,0 +1,36 @@
+<!-- miniprogram/pages/task/detail.wxml -->
+<view class="page" wx:if="{{task}}">
+  <view class="hero-card">
+    <view class="hero-top">
+      <text class="title">{{task.title}}</text>
+      <text class="tag">{{task.status_text}}</text>
+    </view>
+    <text class="desc">{{task.description || '暂无任务说明'}}</text>
+    <view class="meta-row">
+      <text>阶段 {{task.stage_count || 0}} 个</text>
+      <text>进度 {{task.progress || 0}}%</text>
+      <text wx:if="{{task.enroll_status}}">状态 {{task.enroll_status}}</text>
+    </view>
+    <view class="progress-bar">
+      <view class="progress-fill" style="width: {{task.progress || 0}}%;"></view>
+    </view>
+    <view class="action-group">
+      <view class="btn primary" wx:if="{{!task.is_enrolled}}" bindtap="enrollTask">立即报名</view>
+      <view class="btn secondary" bindtap="loadDetail">刷新信息</view>
+    </view>
+  </view>
+
+  <view class="section-title">任务阶段</view>
+  <view class="stage-card" wx:for="{{task.stages}}" wx:key="id">
+    <view class="stage-top">
+      <text class="stage-title">{{index + 1}}. {{item.name}}</text>
+      <text class="stage-tag">{{item.type_text}}</text>
+    </view>
+    <view class="stage-meta">
+      <text>完成进度 {{item.progress || 0}}%</text>
+      <text>要求 {{item.required_progress || 0}}%</text>
+      <text wx:if="{{item.best_score !== null && item.best_score !== undefined}}">最佳得分 {{item.best_score}}</text>
+    </view>
+    <text class="stage-status {{item.is_complete ? 'done' : ''}}">{{item.is_complete ? '已完成' : '未完成'}}</text>
+  </view>
+</view>

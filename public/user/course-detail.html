@@ -1,0 +1,315 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>课程详情 - 在线培训考试系统</title>
+    <link rel="stylesheet" href="https://unpkg.com/layui@2.9.23/dist/css/layui.css">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'PingFang SC', sans-serif; background: #F5F7FA; color: #333; }
+        .page-header {
+            background: linear-gradient(135deg, #1890FF, #0050B3);
+            padding: 12px 16px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            color: #fff;
+            position: sticky;
+            top: 0;
+            z-index: 10;
+        }
+        .back-btn { font-size: 18px; cursor: pointer; padding: 4px; }
+        .page-header h1 { font-size: 17px; font-weight: 600; flex: 1; }
+        .content { padding: 16px; }
+        .hero-card, .chapter-card, .empty-card {
+            background: #fff;
+            border-radius: 14px;
+            box-shadow: 0 1px 8px rgba(0, 0, 0, 0.06);
+            overflow: hidden;
+        }
+        .hero-cover {
+            height: 180px;
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #fff;
+            font-size: 54px;
+        }
+        .hero-body { padding: 18px; }
+        .hero-title { font-size: 20px; font-weight: 700; margin-bottom: 8px; }
+        .hero-desc { color: #666; font-size: 14px; line-height: 1.7; white-space: pre-wrap; }
+        .meta-row, .stats-row { display: flex; flex-wrap: wrap; gap: 10px 18px; margin-top: 14px; }
+        .meta-row span, .stats-row span { font-size: 13px; color: #888; display: inline-flex; align-items: center; gap: 6px; }
+        .progress-box { margin-top: 16px; padding: 14px; background: #F7FAFF; border-radius: 12px; }
+        .progress-head { display: flex; justify-content: space-between; margin-bottom: 10px; font-size: 13px; color: #666; }
+        .progress-value { color: #1890FF; font-weight: 700; }
+        .progress-bar { height: 8px; background: #E8EDF3; border-radius: 999px; overflow: hidden; }
+        .progress-fill { height: 100%; background: linear-gradient(90deg, #1890FF, #36CFC9); }
+        .action-row { display: flex; gap: 12px; margin-top: 16px; }
+        .action-btn {
+            border: none;
+            border-radius: 999px;
+            padding: 11px 18px;
+            font-size: 14px;
+            cursor: pointer;
+        }
+        .action-btn.primary { background: linear-gradient(135deg, #1890FF, #0050B3); color: #fff; }
+        .action-btn.secondary { background: #fff; border: 1px solid #D9E1EA; color: #555; }
+        .section-title { margin: 18px 4px 12px; font-size: 16px; font-weight: 700; }
+        .chapter-card { padding: 16px; margin-bottom: 14px; }
+        .chapter-title { font-size: 15px; font-weight: 700; margin-bottom: 6px; }
+        .chapter-desc { font-size: 12px; color: #999; margin-bottom: 12px; }
+        .resource-list { display: flex; flex-direction: column; gap: 10px; }
+        .resource-item {
+            border: 1px solid #EEF2F6;
+            border-radius: 12px;
+            padding: 14px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            cursor: pointer;
+            transition: all 0.2s;
+            background: #FAFBFC;
+        }
+        .resource-item:active { transform: scale(0.99); }
+        .resource-icon {
+            width: 44px;
+            height: 44px;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #fff;
+            font-size: 20px;
+            flex-shrink: 0;
+            background: linear-gradient(135deg, #4ECDC4, #44A08D);
+        }
+        .resource-main { flex: 1; min-width: 0; }
+        .resource-title { font-size: 14px; font-weight: 600; color: #333; margin-bottom: 6px; }
+        .resource-meta { display: flex; flex-wrap: wrap; gap: 8px; font-size: 12px; color: #999; }
+        .resource-tag {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            padding: 2px 8px;
+            border-radius: 999px;
+            background: #EEF5FF;
+            color: #1890FF;
+        }
+        .resource-status { text-align: right; font-size: 12px; color: #999; }
+        .resource-status.done { color: #43A047; font-weight: 600; }
+        .empty-card { padding: 48px 20px; text-align: center; color: #999; }
+        .empty-card i { display: block; font-size: 42px; margin-bottom: 12px; color: #C0C4CC; }
+    </style>
+</head>
+<body>
+    <div class="page-header">
+        <div class="back-btn" onclick="goBack()"><i class="layui-icon layui-icon-left"></i></div>
+        <h1>课程详情</h1>
+    </div>
+
+    <div class="content">
+        <div id="courseHero" class="hero-card">
+            <div class="empty-card"><i class="layui-icon layui-icon-loading-1"></i><p>加载中...</p></div>
+        </div>
+        <div class="section-title">章节资源</div>
+        <div id="chapterList"></div>
+    </div>
+
+    <script src="https://unpkg.com/jquery@3.7.1/dist/jquery.min.js"></script>
+    <script src="https://unpkg.com/layui@2.9.23/dist/layui.js"></script>
+    <script src="api.js"></script>
+    <script>
+        if (!Api.checkLogin()) {}
+
+        var courseId = getParam('id');
+        var courseData = null;
+
+        function getParam(name) {
+            var search = new URLSearchParams(location.search);
+            return search.get(name) || '';
+        }
+
+        function safe(value) {
+            return String(value == null ? '' : value)
+                .replace(/&/g, '&amp;')
+                .replace(/</g, '&lt;')
+                .replace(/>/g, '&gt;')
+                .replace(/"/g, '&quot;')
+                .replace(/'/g, '&#39;');
+        }
+
+        function formatDuration(seconds) {
+            seconds = Number(seconds || 0);
+            var hours = Math.floor(seconds / 3600);
+            var minutes = Math.floor((seconds % 3600) / 60);
+            var secs = seconds % 60;
+            if (hours > 0) {
+                return hours + ':' + String(minutes).padStart(2, '0') + ':' + String(secs).padStart(2, '0');
+            }
+            return minutes + ':' + String(secs).padStart(2, '0');
+        }
+
+        function getResourceTypeText(type) {
+            var map = { video: '视频', audio: '音频', document: '文档', image: '图片', file: '附件' };
+            return map[type] || '资源';
+        }
+
+        function getResourceIcon(type) {
+            var map = { video: 'layui-icon-video', audio: 'layui-icon-headset', document: 'layui-icon-read', image: 'layui-icon-picture', file: 'layui-icon-file' };
+            return map[type] || 'layui-icon-file';
+        }
+
+        function goBack() {
+            if (document.referrer) {
+                history.back();
+            } else {
+                location.href = 'course.html';
+            }
+        }
+
+        function showEmpty(text) {
+            document.getElementById('courseHero').innerHTML = '<div class="empty-card"><i class="layui-icon layui-icon-video"></i><p>' + safe(text) + '</p></div>';
+            document.getElementById('chapterList').innerHTML = '';
+        }
+
+        function loadCourse() {
+            if (!courseId) {
+                showEmpty('课程参数缺失');
+                return;
+            }
+
+            Api.getCourseDetail(courseId).then(function(res) {
+                if (res.code !== 200 || !res.data) {
+                    showEmpty(res.msg || '课程加载失败');
+                    return;
+                }
+                courseData = res.data;
+                renderCourse();
+            }).catch(function() {
+                showEmpty('课程加载失败');
+            });
+        }
+
+        function renderCourse() {
+            var course = courseData || {};
+            var chapters = Array.isArray(course.chapters) ? course.chapters : [];
+            var totalResources = 0;
+            chapters.forEach(function(chapter) {
+                totalResources += Array.isArray(chapter.resources) ? chapter.resources.length : 0;
+            });
+            var completedCount = Array.isArray(course.completed_resources) ? course.completed_resources.length : 0;
+
+            document.getElementById('courseHero').innerHTML = ''
+                + '<div class="hero-cover"><i class="layui-icon layui-icon-video"></i></div>'
+                + '<div class="hero-body">'
+                + '  <div class="hero-title">' + safe(course.title || '未命名课程') + '</div>'
+                + '  <div class="hero-desc">' + safe(course.description || '暂无课程介绍') + '</div>'
+                + '  <div class="meta-row">'
+                + '    <span><i class="layui-icon layui-icon-user"></i>' + safe(course.teacher || '未知讲师') + '</span>'
+                + '    <span><i class="layui-icon layui-icon-time"></i>' + formatDuration(course.total_duration || 0) + '</span>'
+                + '    <span><i class="layui-icon layui-icon-tabs"></i>' + chapters.length + ' 章节</span>'
+                + '  </div>'
+                + '  <div class="progress-box">'
+                + '    <div class="progress-head"><span>学习进度</span><span class="progress-value">' + Number(course.progress || 0) + '%</span></div>'
+                + '    <div class="progress-bar"><div class="progress-fill" style="width:' + Number(course.progress || 0) + '%;"></div></div>'
+                + '    <div class="stats-row">'
+                + '      <span><i class="layui-icon layui-icon-ok-circle"></i>已完成 ' + completedCount + ' / ' + totalResources + ' 个资源</span>'
+                + '    </div>'
+                + '  </div>'
+                + '  <div class="action-row">'
+                + '    <button class="action-btn primary" onclick="enrollCourse()">报名学习</button>'
+                + '    <button class="action-btn secondary" onclick="loadCourse()">刷新进度</button>'
+                + '  </div>'
+                + '</div>';
+
+            if (!chapters.length) {
+                document.getElementById('chapterList').innerHTML = '<div class="empty-card"><i class="layui-icon layui-icon-template-1"></i><p>暂无章节资源</p></div>';
+                return;
+            }
+
+            document.getElementById('chapterList').innerHTML = chapters.map(function(chapter, chapterIndex) {
+                var resources = Array.isArray(chapter.resources) ? chapter.resources : [];
+                var resourceHtml = resources.length ? resources.map(function(resource) {
+                    var statusClass = resource.is_completed ? 'resource-status done' : 'resource-status';
+                    var statusText = resource.is_completed ? '已学完' : '点击学习';
+                    return ''
+                        + '<div class="resource-item" onclick="openResource(' + Number(chapter.id || 0) + ', ' + Number(resource.id || 0) + ')">'
+                        + '  <div class="resource-icon"><i class="layui-icon ' + getResourceIcon(resource.type) + '"></i></div>'
+                        + '  <div class="resource-main">'
+                        + '    <div class="resource-title">' + safe(resource.title || '未命名资源') + '</div>'
+                        + '    <div class="resource-meta">'
+                        + '      <span class="resource-tag">' + safe(getResourceTypeText(resource.type)) + '</span>'
+                        + '      <span>' + formatDuration(resource.duration || 0) + '</span>'
+                        + '    </div>'
+                        + '  </div>'
+                        + '  <div class="' + statusClass + '">' + statusText + '</div>'
+                        + '</div>';
+                }).join('') : '<div class="empty-card" style="padding:24px 12px;"><p>本章节暂无资源</p></div>';
+
+                return ''
+                    + '<div class="chapter-card">'
+                    + '  <div class="chapter-title">第 ' + (chapterIndex + 1) + ' 章 · ' + safe(chapter.title || '未命名章节') + '</div>'
+                    + '  <div class="chapter-desc">' + safe(chapter.description || '点击资源后会记录学习进度') + '</div>'
+                    + '  <div class="resource-list">' + resourceHtml + '</div>'
+                    + '</div>';
+            }).join('');
+        }
+
+        function enrollCourse() {
+            Api.enrollCourse(courseId).then(function(res) {
+                if (res.code !== 200) {
+                    Api.msg(res.msg || '报名失败', 'error');
+                    return;
+                }
+                Api.msg(res.msg || '报名成功', 'success');
+                loadCourse();
+            }).catch(function() {
+                Api.msg('报名失败', 'error');
+            });
+        }
+
+        function openResource(chapterId, resourceId) {
+            var course = courseData || {};
+            var chapters = Array.isArray(course.chapters) ? course.chapters : [];
+            var chapter = chapters.find(function(item) { return Number(item.id) === Number(chapterId); });
+            var resource = chapter && Array.isArray(chapter.resources)
+                ? chapter.resources.find(function(item) { return Number(item.id) === Number(resourceId); })
+                : null;
+
+            if (!resource) {
+                Api.msg('资源不存在', 'error');
+                return;
+            }
+
+            var payload = {
+                course_id: Number(course.id || courseId || 0),
+                chapter_id: Number(chapterId || 0),
+                resource_id: Number(resourceId || 0),
+                watch_duration: Number(resource.duration || 0)
+            };
+            var fileUrl = resource.file_url || '';
+
+            Api.saveStudyRecord(payload).then(function(res) {
+                if (res.code !== 200) {
+                    Api.msg(res.msg || '学习记录保存失败', 'error');
+                    return;
+                }
+                if (fileUrl) {
+                    window.open(fileUrl, '_blank');
+                }
+                Api.msg('学习进度已记录', 'success');
+                loadCourse();
+            }).catch(function() {
+                if (fileUrl) {
+                    window.open(fileUrl, '_blank');
+                }
+            });
+        }
+
+        loadCourse();
+    </script>
+</body>
+</html>

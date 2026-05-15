@@ -1,0 +1,185 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <title>章节管理</title>
+  <link rel="stylesheet" href="../../vendor/layui/layui.css">
+  <style>
+    body { padding: 10px; background: #fff; }
+    .toolbar { margin-bottom: 10px; }
+    .chapter-item { border: 1px solid #e6e6e6; margin-bottom: 10px; border-radius: 4px; }
+    .chapter-header { background: #f2f2f2; padding: 10px 15px; display: flex; justify-content: space-between; align-items: center; cursor: pointer; }
+    .chapter-body { padding: 10px 15px; display: none; }
+    .chapter-body.open { display: block; }
+    .sub-item { padding: 5px 0; border-bottom: 1px dashed #e6e6e6; display: flex; justify-content: space-between; align-items: center; }
+    .sub-item:last-child { border-bottom: none; }
+    .layui-table { font-size: 13px; }
+  </style>
+</head>
+<body>
+<div class="toolbar">
+  <button class="layui-btn layui-btn-sm" id="btnAddChapter"><i class="layui-icon layui-icon-add-1"></i> 添加章节</button>
+</div>
+<table class="layui-table" id="chapterTable">
+  <thead><tr><th>序号</th><th>章节名称</th><th>排序</th><th>时长(分钟)</th><th>状态</th><th>操作</th></tr></thead>
+  <tbody id="chapterList"></tbody>
+</table>
+<script src="../../vendor/jquery/jquery.min.js"></script>
+<script src="../../vendor/layui/layui.js"></script>
+<script>
+(function() {
+  var BASE_API = '../../';
+  var courseId = null;
+
+  function getQueryParam(name) {
+    var reg = new RegExp("(^|&)" + name + "=([^&]*)(&|$)", "i");
+    var r = window.location.search.substr(1).match(reg);
+    if (r != null) return decodeURIComponent(r[2]);
+    return null;
+  }
+
+  function getToken() {
+    return localStorage.getItem('admin_token') || '';
+  }
+
+  function ajax(opts) {
+    return $.ajax({
+      url: opts.url,
+      type: opts.type || 'GET',
+      data: opts.data || {},
+      dataType: 'json',
+      beforeSend: function(xhr) {
+        var t = getToken();
+        if (t) xhr.setRequestHeader('Admin-Token', t);
+      },
+      success: function(res) {
+        if (res.code === 401) {
+          localStorage.removeItem('admin_token');
+          localStorage.removeItem('admin_user');
+          if (parent.location) parent.location.href = 'login.html';
+          return;
+        }
+        opts.success && opts.success(res);
+      },
+      error: function() {
+        layer.msg('请求失败', { icon: 2 });
+        opts.error && opts.error();
+      }
+    });
+  }
+
+  function loadChapters() {
+    ajax({
+      url: BASE_API + 'course/' + courseId + '/chapters',
+      success: function(res) {
+        if (res.code === 200) {
+          renderList(res.data || []);
+        }
+      }
+    });
+  }
+
+  function renderList(data) {
+    var tbody = document.getElementById('chapterList');
+    if (data.length === 0) {
+      tbody.innerHTML = '<tr><td colspan="6" style="text-align:center;color:#999;">暂无章节数据</td></tr>';
+      return;
+    }
+    var html = '';
+    data.forEach(function(ch, idx) {
+      var statusText = ch.status == 1 ? '<span style="color:#52c41a;">启用</span>' : '<span style="color:#999;">禁用</span>';
+      html += '<tr>' +
+        '<td>' + (idx + 1) + '</td>' +
+        '<td>' + escapeHtml(ch.title) + '</td>' +
+        '<td>' + (ch.sort || 0) + '</td>' +
+        '<td>' + (ch.duration || 0) + '</td>' +
+        '<td>' + statusText + '</td>' +
+        '<td>' +
+          '<a href="javascript:void(0);" class="edit-chapter" data-id="' + ch.id + '" style="color:#009688;margin-right:10px;">编辑</a>' +
+          '<a href="javascript:void(0);" class="del-chapter" data-id="' + ch.id + '" style="color:#ff4d4f;">删除</a>' +
+        '</td>' +
+        '</tr>';
+    });
+    tbody.innerHTML = html;
+
+    tbody.querySelectorAll('.edit-chapter').forEach(function(a) {
+      a.addEventListener('click', function() {
+        var id = this.getAttribute('data-id');
+        openChapterForm(id);
+      });
+    });
+
+    tbody.querySelectorAll('.del-chapter').forEach(function(a) {
+      a.addEventListener('click', function() {
+        var id = this.getAttribute('data-id');
+        layer.confirm('确定删除该章节？', { icon: 3 }, function(idx) {
+          ajax({
+            url: BASE_API + 'chapter/' + id,
+            type: 'DELETE',
+            success: function(res) {
+              if (res.code === 200) {
+                layer.msg('删除成功', { icon: 1 });
+                loadChapters();
+              } else {
+                layer.msg(res.msg || '删除失败', { icon: 2 });
+              }
+            }
+          });
+          layer.close(idx);
+        });
+      });
+    });
+  }
+
+  function openChapterForm(id) {
+    var title = id ? '编辑章节' : '添加章节';
+    var url = '../js/chapter_form.html' + (id ? ('?id=' + id + '&course_id=' + courseId) : ('?course_id=' + courseId));
+    layer.open({
+      type: 2,
+      title: title,
+      area: ['920px', '680px'],
+      skin: 'admin-layer-shell',
+      shade: 0.42,
+      shadeClose: false,
+      maxmin: true,
+      resize: true,
+      content: url,
+      btn: ['保存', '取消'],
+      yes: function(index, layero) {
+        var frame = layero.find('iframe')[0].contentWindow;
+        if (frame.saveChapter) {
+          frame.saveChapter(function(success) {
+            if (success) {
+              layer.close(index);
+              loadChapters();
+            }
+          });
+        }
+      }
+    });
+  }
+
+  function escapeHtml(str) {
+    if (!str) return '';
+    return String(str).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+  }
+
+  layui.use(['layer'], function() {
+    var layer = layui.layer;
+    courseId = getQueryParam('course_id') || getQueryParam('id');
+
+    if (!courseId || String(courseId).indexOf('new_') === 0) {
+      document.getElementById('chapterList').innerHTML = '<tr><td colspan="6" style="text-align:center;color:#999;">请先保存课程后再管理章节</td></tr>';
+      return;
+    }
+
+    loadChapters();
+
+    $('#btnAddChapter').on('click', function() {
+      openChapterForm(null);
+    });
+  });
+})();
+</script>
+</body>
+</html>

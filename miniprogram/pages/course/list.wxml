@@ -1,0 +1,30 @@
+<!-- miniprogram/pages/course/list.wxml -->
+<view class="page">
+  <view class="course-list">
+    <view class="course-card" wx:for="{{courses}}" wx:key="id" bindtap="goDetail" data-id="{{item.id}}">
+      <image class="course-cover" src="{{item.cover || '/assets/images/course-default.png'}}" mode="aspectFill"></image>
+      <view class="course-info">
+        <text class="course-title">{{item.title}}</text>
+        <view class="course-meta">
+          <text class="course-teacher">{{item.teacher || '未知讲师'}}</text>
+          <text class="course-duration">{{item.duration_text || '0:00'}}</text>
+        </view>
+        <view class="course-footer">
+          <text class="course-students">{{item.student_count || 0}}人学习</text>
+          <text class="course-price {{item.is_free == 1 ? 'free' : ''}}">{{item.is_free == 1 ? '免费' : item.price + '元'}}</text>
+        </view>
+      </view>
+    </view>
+  </view>
+
+  <view class="loading-more" wx:if="{{loading}}">
+    <text>加载中...</text>
+  </view>
+  <view class="no-more" wx:if="{{!hasMore && courses.length > 0}}">
+    <text>没有更多了</text>
+  </view>
+  <view class="empty-state" wx:if="{{courses.length === 0 && !loading}}">
+    <image src="/assets/images/empty.png" mode="aspectFit"></image>
+    <text>暂无课程</text>
+  </view>
+</view>

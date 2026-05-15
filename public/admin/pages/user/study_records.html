@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>学时明细</title>
+    <link rel="stylesheet" href="../../vendor/layui/layui.css">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { background: #f5f7fa; }
+        .toolbar { padding: 12px 16px; background: #fff; border-bottom: 1px solid #f0f0f0; display: flex; justify-content: space-between; align-items: center; gap: 12px; }
+        .toolbar-title { font-size: 16px; font-weight: 600; color: #333; }
+        .toolbar-desc { font-size: 12px; color: #999; margin-top: 4px; }
+        .data-table { background: #fff; }
+        .layui-table-view { border: none; }
+        .layui-table-box { background: #fff; }
+    </style>
+</head>
+<body>
+<div class="toolbar">
+    <div>
+        <div class="toolbar-title">学时明细</div>
+        <div class="toolbar-desc">展示该学员的课程学习进度、学时和最近学习时间</div>
+    </div>
+    <button class="layui-btn layui-btn-sm" id="btnRefresh"><i class="layui-icon layui-icon-refresh"></i> 刷新</button>
+</div>
+<div class="data-table">
+    <table id="studyTable" lay-filter="studyTable"></table>
+</div>
+
+<script type="text/html" id="progressTpl">
+    <span style="color:#1E9FFF;font-weight:600;">{{ d.progress_text || ((d.progress || 0) + '%') }}</span>
+</script>
+
+<script type="text/html" id="statusTpl">
+    {{# if(parseInt(d.is_complete) === 1){ }}
+    <span style="color:#52c41a;font-weight:600;">已完成</span>
+    {{# } else { }}
+    <span style="color:#FF9800;font-weight:600;">学习中</span>
+    {{# } }}
+</script>
+
+<script src="../../vendor/jquery/jquery.min.js"></script>
+<script src="../../vendor/layui/layui.js"></script>
+<script>
+(function() {
+    var BASE_API = '../../';
+    function apiUrl(path) {
+        return BASE_API + path.replace(/^\/+/, '');
+    }
+    function getToken() {
+        return localStorage.getItem('admin_token') || '';
+    }
+    function getQuery(name) {
+        var match = location.search.match(new RegExp('[?&]' + name + '=([^&]+)'));
+        return match ? decodeURIComponent(match[1]) : '';
+    }
+
+    var userId = getQuery('id');
+    var TABLE_ID = 'studyTable';
+
+    layui.use(['table', 'layer'], function() {
+        var table = layui.table;
+        var layer = layui.layer;
+
+        table.render({
+            elem: '#' + TABLE_ID,
+            url: apiUrl('user/' + userId + '/study-records'),
+            page: true,
+            limit: 15,
+            limits: [10, 15, 20, 30, 50],
+            headers: { 'Admin-Token': getToken() },
+            response: { statusCode: 200 },
+            request: { pageName: 'page', limitName: 'limit' },
+            cols: [[
+                { field: 'id', title: 'ID', width: 80 },
+                { field: 'course_title', title: '课程', minWidth: 160 },
+                { field: 'chapter_title', title: '章节', minWidth: 140, templet: function(d) { return d.chapter_title || '-'; } },
+                { field: 'resource_title', title: '资源', minWidth: 180, templet: function(d) { return d.resource_title || '-'; } },
+                { field: 'resource_type_text', title: '类型', width: 90, templet: function(d) { return d.resource_type_text || '-'; } },
+                { field: 'watch_duration_text', title: '已学时长', width: 110, templet: function(d) { return d.watch_duration_text || '0秒'; } },
+                { field: 'total_duration_text', title: '资源时长', width: 110, templet: function(d) { return d.total_duration_text || '0秒'; } },
+                { field: 'progress', title: '进度', width: 90, toolbar: '#progressTpl' },
+                { field: 'is_complete', title: '状态', width: 90, toolbar: '#statusTpl' },
+                { field: 'last_study_time', title: '最后学习时间', width: 170, templet: function(d) {
+                    return d.last_study_time ? d.last_study_time.replace('T', ' ').substring(0, 19) : '-';
+                } }
+            ]],
+            done: function(res) {
+                if (res.code !== 200) {
+                    layer.msg(res.msg || '加载失败', { icon: 2 });
+                }
+            }
+        });
+
+        $('#btnRefresh').on('click', function() {
+            table.reload(TABLE_ID);
+        });
+    });
+})();
+</script>
+</body>
+</html>

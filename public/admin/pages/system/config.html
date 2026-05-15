@@ -1,0 +1,175 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>系统配置</title>
+    <link rel="stylesheet" href="../../vendor/layui/layui.css">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { padding: 15px; background: #f0f2f5; }
+        .search-bar { padding: 14px 16px 0; background: #fff; border-bottom: 1px solid #eee; margin-bottom: 0; }
+        .config-panel { background: #fff; padding: 20px; }
+        .config-item { margin-bottom: 20px; }
+        .config-group-title { font-size: 15px; font-weight: 600; color: #333; margin-bottom: 15px; padding-bottom: 10px; border-bottom: 1px solid #f0f0f0; }
+    </style>
+</head>
+<body>
+
+<div class="search-bar">
+    <form class="layui-form" lay-filter="searchForm">
+        <div class="layui-form-item" style="margin-bottom:10px;">
+            <div class="layui-inline">
+                <label class="layui-form-label">配置分组</label>
+                <div class="layui-input-inline" style="width:150px;">
+                    <select name="group" id="groupSelect" lay-filter="groupChange">
+                        <option value="basic">基本设置</option>
+                        <option value="exam">考试设置</option>
+                        <option value="certificate">证书设置</option>
+                    </select>
+                </div>
+            </div>
+        </div>
+    </form>
+</div>
+
+<div class="config-panel" id="configPanel">
+    <div class="config-group-title" id="groupTitle">基本设置</div>
+    <form class="layui-form" lay-filter="configForm" id="configForm"></form>
+</div>
+
+<script src="../../vendor/jquery/jquery.min.js"></script>
+<script src="../../vendor/layui/layui.js"></script>
+<script>
+(function() {
+    var currentGroup = 'basic';
+
+    function getToken() {
+        return localStorage.getItem('admin_token') || '';
+    }
+
+    layui.use(['form', 'layer'], function() {
+        var form = layui.form;
+        var layer = layui.layer;
+
+        function ajax(opts) {
+            return $.ajax({
+                url: opts.url,
+                type: opts.type || 'GET',
+                data: opts.data || {},
+                dataType: 'json',
+                beforeSend: function(xhr) {
+                    var t = getToken();
+                    if (t) xhr.setRequestHeader('Admin-Token', t);
+                },
+                success: function(res) {
+                    if (res.code === 401) {
+                        localStorage.removeItem('admin_token');
+                        localStorage.removeItem('admin_user');
+                        parent.location.href = 'login.html';
+                        return;
+                    }
+                    opts.success && opts.success(res);
+                },
+                error: function() {
+                    layer.msg('网络请求失败', { icon: 2 });
+                    opts.error && opts.error();
+                }
+            });
+        }
+
+        function showSuccess(msg) { layer.msg(msg, { icon: 1, shade: 0.3, time: 1500 }); }
+        function showError(msg) { layer.msg(msg, { icon: 2, shade: 0.3, time: 2000 }); }
+
+        loadConfigs('basic');
+
+        form.on('select(groupChange)', function(data) {
+            loadConfigs(data.value);
+        });
+
+        function loadConfigs(group) {
+            currentGroup = group;
+            var titles = { basic: '基本设置', exam: '考试设置', certificate: '证书设置' };
+            $('#groupTitle').text(titles[group] || group);
+
+            ajax({
+                url: '../../config/group/' + group,
+                success: function(res) {
+                    if (res.code === 200) {
+                        renderForm(res.data);
+                    }
+                }
+            });
+        }
+
+        function renderForm(configs) {
+            if (!configs || configs.length === 0) {
+                $('#configForm').html('<div style="padding:30px;text-align:center;color:#999;">该分组暂无配置项</div>');
+                form.render();
+                return;
+            }
+
+            var html = '<input type="hidden" name="group" value="' + (configs[0] && configs[0].group ? configs[0].group : currentGroup) + '">';
+
+            configs.forEach(function(item) {
+                html += '<div class="layui-form-item">';
+                html += '<label class="layui-form-label" style="width:150px;">' + (item.description || item.name) + '</label>';
+                html += '<div class="layui-input-block" style="margin-left:170px;">';
+
+                if (item.type === 'text') {
+                    html += '<input type="text" name="' + item.name + '" value="' + escHtml(item.value || '') + '" class="layui-input" style="max-width:400px;">';
+                } else if (item.type === 'number') {
+                    html += '<input type="number" name="' + item.name + '" value="' + (item.value || '') + '" class="layui-input" style="width:150px;">';
+                } else if (item.type === 'switch') {
+                    var checked = item.value == 1 ? 'checked' : '';
+                    html += '<input type="checkbox" name="' + item.name + '" lay-skin="switch" lay-text="是|否" value="1" ' + checked + '>';
+                } else if (item.type === 'textarea') {
+                    html += '<textarea name="' + item.name + '" class="layui-textarea" style="max-width:500px;height:80px;">' + escHtml(item.value || '') + '</textarea>';
+                } else if (item.type === 'file') {
+                    html += '<input type="text" name="' + item.name + '" value="' + escHtml(item.value || '') + '" class="layui-input" style="max-width:400px;" placeholder="图片URL">';
+                } else {
+                    html += '<input type="text" name="' + item.name + '" value="' + escHtml(item.value || '') + '" class="layui-input" style="max-width:400px;">';
+                }
+
+                html += '</div></div>';
+            });
+
+            html += '<div class="layui-form-item"><div class="layui-input-block" style="margin-left:170px;"><button class="layui-btn" lay-submit lay-filter="saveBtn"><i class="layui-icon layui-icon-ok"></i> 保存设置</button></div></div>';
+
+            $('#configForm').html(html);
+            form.render();
+
+            form.on('submit(saveBtn)', function(data) {
+                var postData = data.field;
+                var promises = [];
+                for (var name in postData) {
+                    (function(n) {
+                        promises.push($.ajax({
+                            url: '../../config/' + n,
+                            type: 'PUT',
+                            data: { value: postData[n] },
+                            beforeSend: function(xhr) {
+                                var t = getToken();
+                                if (t) xhr.setRequestHeader('Admin-Token', t);
+                            }
+                        }));
+                    })(name);
+                }
+                Promise.all(promises).then(function() {
+                    showSuccess('保存成功');
+                    loadConfigs(currentGroup);
+                }).catch(function() {
+                    showError('保存失败');
+                });
+                return false;
+            });
+        }
+
+        function escHtml(str) {
+            if (!str) return '';
+            return String(str).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+        }
+    });
+})();
+</script>
+</body>
+</html>

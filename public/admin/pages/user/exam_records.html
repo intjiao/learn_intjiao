@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>成绩明细</title>
+    <link rel="stylesheet" href="../../vendor/layui/layui.css">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { background: #f5f7fa; }
+        .toolbar { padding: 12px 16px; background: #fff; border-bottom: 1px solid #f0f0f0; display: flex; justify-content: space-between; align-items: center; gap: 12px; }
+        .toolbar-title { font-size: 16px; font-weight: 600; color: #333; }
+        .toolbar-desc { font-size: 12px; color: #999; margin-top: 4px; }
+        .data-table { background: #fff; }
+        .layui-table-view { border: none; }
+        .layui-table-box { background: #fff; }
+    </style>
+</head>
+<body>
+<div class="toolbar">
+    <div>
+        <div class="toolbar-title">成绩明细</div>
+        <div class="toolbar-desc">展示该学员的考试成绩、及格状态和提交时间</div>
+    </div>
+    <button class="layui-btn layui-btn-sm" id="btnRefresh"><i class="layui-icon layui-icon-refresh"></i> 刷新</button>
+</div>
+<div class="data-table">
+    <table id="examRecordTable" lay-filter="examRecordTable"></table>
+</div>
+
+<script type="text/html" id="statusTpl">
+    {{# var map = {0:'<span style="color:#999;">已取消</span>', 1:'<span style="color:#FF9800;">进行中</span>', 2:'<span style="color:#1E9FFF;">已完成</span>'}; }}
+    {{ map[d.status] || d.status_text || '-' }}
+</script>
+
+<script type="text/html" id="passTpl">
+    {{# if(parseInt(d.status) !== 2){ }}
+    <span style="color:#999;">未完成</span>
+    {{# } else if(parseInt(d.pass_status) === 1) { }}
+    <span style="color:#52c41a;font-weight:600;">及格</span>
+    {{# } else { }}
+    <span style="color:#ff4d4f;font-weight:600;">不及格</span>
+    {{# } }}
+</script>
+
+<script src="../../vendor/jquery/jquery.min.js"></script>
+<script src="../../vendor/layui/layui.js"></script>
+<script>
+(function() {
+    var BASE_API = '../../';
+    function apiUrl(path) {
+        return BASE_API + path.replace(/^\/+/, '');
+    }
+    function getToken() {
+        return localStorage.getItem('admin_token') || '';
+    }
+    function getQuery(name) {
+        var match = location.search.match(new RegExp('[?&]' + name + '=([^&]+)'));
+        return match ? decodeURIComponent(match[1]) : '';
+    }
+
+    var userId = getQuery('id');
+    var TABLE_ID = 'examRecordTable';
+
+    layui.use(['table', 'layer'], function() {
+        var table = layui.table;
+        var layer = layui.layer;
+
+        table.render({
+            elem: '#' + TABLE_ID,
+            url: apiUrl('user/' + userId + '/exam-records'),
+            page: true,
+            limit: 15,
+            limits: [10, 15, 20, 30, 50],
+            headers: { 'Admin-Token': getToken() },
+            response: { statusCode: 200 },
+            request: { pageName: 'page', limitName: 'limit' },
+            cols: [[
+                { field: 'id', title: 'ID', width: 80 },
+                { field: 'paper_title', title: '试卷', minWidth: 180, templet: function(d) { return d.paper_title || '-'; } },
+                { field: 'source_text', title: '来源', width: 100, templet: function(d) { return d.source_text || '-'; } },
+                { field: 'status', title: '状态', width: 90, toolbar: '#statusTpl' },
+                { field: 'score', title: '得分', width: 90, templet: function(d) { return d.score != null ? d.score : '-'; } },
+                { field: 'total_score', title: '总分', width: 90, templet: function(d) { return d.total_score != null ? d.total_score : '-'; } },
+                { field: 'pass_status', title: '结果', width: 90, toolbar: '#passTpl' },
+                { field: 'duration_text', title: '用时', width: 100, templet: function(d) { return d.duration_text || '0秒'; } },
+                { field: 'start_time', title: '开始时间', width: 170, templet: function(d) {
+                    return d.start_time ? d.start_time.replace('T', ' ').substring(0, 19) : '-';
+                } },
+                { field: 'submit_time', title: '提交时间', width: 170, templet: function(d) {
+                    return d.submit_time ? d.submit_time.replace('T', ' ').substring(0, 19) : '-';
+                } }
+            ]],
+            done: function(res) {
+                if (res.code !== 200) {
+                    layer.msg(res.msg || '加载失败', { icon: 2 });
+                }
+            }
+        });
+
+        $('#btnRefresh').on('click', function() {
+            table.reload(TABLE_ID);
+        });
+    });
+})();
+</script>
+</body>
+</html>

@@ -1,0 +1,718 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>学员中心 - 在线培训考试系统</title>
+    <link rel="stylesheet" href="https://unpkg.com/layui@2.9.23/dist/css/layui.css">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+        html, body { height: 100%; }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'PingFang SC', 'Microsoft YaHei', sans-serif;
+            background: #F5F7FA;
+            overflow: hidden;
+        }
+
+        /* ========== 页面容器 ========== */
+        .app-wrapper {
+            display: flex;
+            flex-direction: column;
+            height: 100vh;
+            height: 100dvh;
+        }
+
+        /* ========== 内容区域 ========== */
+        .tab-content {
+            flex: 1;
+            overflow-y: auto;
+            overflow-x: hidden;
+            -webkit-overflow-scrolling: touch;
+            padding-bottom: env(safe-area-inset-bottom, 0px);
+        }
+        .tab-panel {
+            display: none;
+            min-height: 100%;
+        }
+        .tab-panel.active { display: block; }
+
+        /* ========== 首页样式 ========== */
+        .home-banner {
+            background: linear-gradient(135deg, #1890FF 0%, #0050B3 100%);
+            padding: 24px 20px 30px;
+            color: #fff;
+            position: relative;
+            overflow: hidden;
+        }
+        .home-banner::after {
+            content: '';
+            position: absolute;
+            right: -20px;
+            top: -20px;
+            width: 140px;
+            height: 140px;
+            border-radius: 50%;
+            background: rgba(255,255,255,0.06);
+        }
+        .banner-user {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 20px;
+        }
+        .banner-avatar {
+            width: 48px;
+            height: 48px;
+            border-radius: 50%;
+            background: rgba(255,255,255,0.2);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 24px;
+            flex-shrink: 0;
+        }
+        .banner-info h2 { font-size: 18px; font-weight: 600; }
+        .banner-info p { font-size: 13px; opacity: 0.8; margin-top: 2px; }
+
+        .banner-stats {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 12px;
+            background: rgba(255,255,255,0.12);
+            border-radius: 12px;
+            padding: 16px 12px;
+        }
+        .stat-item { text-align: center; }
+        .stat-item .s-num { font-size: 22px; font-weight: 700; }
+        .stat-item .s-label { font-size: 11px; opacity: 0.75; margin-top: 2px; }
+
+        .home-section { padding: 20px; }
+        .section-hd {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 14px;
+        }
+        .section-hd h3 { font-size: 16px; font-weight: 600; color: #333; }
+        .section-hd a { font-size: 13px; color: #999; text-decoration: none; }
+
+        /* 快速入口 */
+        .quick-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 12px;
+            margin-bottom: 8px;
+        }
+        .quick-cell {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 6px;
+            padding: 14px 8px;
+            background: #fff;
+            border-radius: 12px;
+            box-shadow: 0 1px 6px rgba(0,0,0,0.06);
+            cursor: pointer;
+            transition: transform 0.15s;
+        }
+        .quick-cell:active { transform: scale(0.96); }
+        .quick-cell .qc-icon { width: 40px; height: 40px; border-radius: 10px; display: flex; align-items: center; justify-content: center; font-size: 20px; color: #fff; }
+        .quick-cell .qc-name { font-size: 12px; color: #333; }
+
+        /* 课程卡片 */
+        .course-list { display: flex; flex-direction: column; gap: 12px; }
+        .course-card {
+            background: #fff;
+            border-radius: 12px;
+            overflow: hidden;
+            box-shadow: 0 1px 6px rgba(0,0,0,0.06);
+            cursor: pointer;
+            transition: transform 0.15s;
+        }
+        .course-card:active { transform: scale(0.98); }
+        .course-cover {
+            height: 120px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 48px;
+            color: #fff;
+            position: relative;
+        }
+        .course-body { padding: 14px; }
+        .course-title { font-size: 15px; font-weight: 600; color: #333; margin-bottom: 6px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        .course-meta { display: flex; gap: 16px; font-size: 12px; color: #999; }
+        .course-meta span { display: flex; align-items: center; gap: 4px; }
+
+        /* 培训任务 */
+        .task-card {
+            background: #fff;
+            border-radius: 12px;
+            padding: 14px 16px;
+            margin-bottom: 12px;
+            box-shadow: 0 1px 6px rgba(0,0,0,0.06);
+            cursor: pointer;
+        }
+        .task-card:active { background: #f8f9ff; }
+        .task-top { display: flex; justify-content: space-between; margin-bottom: 8px; }
+        .task-name { font-size: 15px; font-weight: 600; color: #333; }
+        .task-tag { padding: 2px 8px; border-radius: 4px; font-size: 11px; }
+        .task-tag.doing { background: #E3F2FD; color: #1890FF; }
+        .task-tag.pending { background: #FFF3E0; color: #FF9800; }
+        .task-tag.done { background: #E8F5E9; color: #43A047; }
+        .task-desc { font-size: 12px; color: #999; margin-bottom: 10px; }
+        .task-bar { height: 4px; background: #f0f0f0; border-radius: 2px; overflow: hidden; }
+        .task-fill { height: 100%; background: linear-gradient(90deg, #1890FF, #0050B3); border-radius: 2px; transition: width 0.3s; }
+        .task-bar-info { display: flex; justify-content: space-between; font-size: 11px; color: #999; margin-top: 4px; }
+
+        /* 空状态 */
+        .empty-state { text-align: center; padding: 40px 20px; color: #c0c0c0; }
+        .empty-state i { font-size: 48px; margin-bottom: 12px; display: block; }
+        .empty-state p { font-size: 14px; }
+
+        /* ========== 知识库样式 ========== */
+        .kb-header {
+            background: #fff;
+            padding: 16px 20px;
+            border-bottom: 1px solid #f0f0f0;
+            position: sticky;
+            top: 0;
+            z-index: 10;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        .kb-back {
+            font-size: 18px;
+            color: #999;
+            cursor: pointer;
+            padding: 4px;
+            flex-shrink: 0;
+        }
+        .kb-back:active { color: #1890FF; }
+        .kb-search {
+            display: flex;
+            gap: 10px;
+            align-items: center;
+            flex: 1;
+        }
+        .search-input {
+            flex: 1;
+            height: 38px;
+            padding: 0 14px;
+            border: 1px solid #e8e8e8;
+            border-radius: 19px;
+            font-size: 14px;
+            outline: none;
+            background: #F5F7FA;
+            transition: border-color 0.2s;
+        }
+        .search-input:focus { border-color: #1890FF; background: #fff; }
+        .kb-category {
+            display: flex;
+            gap: 8px;
+            padding: 12px 20px;
+            overflow-x: auto;
+            background: #fff;
+            -webkit-overflow-scrolling: touch;
+            scrollbar-width: none;
+        }
+        .kb-category::-webkit-scrollbar { display: none; }
+        .cat-chip {
+            padding: 5px 14px;
+            border-radius: 16px;
+            font-size: 13px;
+            background: #f0f0f0;
+            color: #666;
+            white-space: nowrap;
+            cursor: pointer;
+            flex-shrink: 0;
+            transition: all 0.2s;
+        }
+        .cat-chip.active { background: #1890FF; color: #fff; }
+
+        .kb-list { padding: 0 20px 20px; }
+        .kb-item {
+            background: #fff;
+            border-radius: 12px;
+            padding: 16px;
+            margin-top: 12px;
+            box-shadow: 0 1px 6px rgba(0,0,0,0.06);
+            cursor: pointer;
+        }
+        .kb-item:active { background: #f8f9ff; }
+        .kb-title { font-size: 15px; font-weight: 600; color: #333; margin-bottom: 8px; }
+        .kb-summary { font-size: 13px; color: #888; line-height: 1.5; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+        .kb-footer { display: flex; justify-content: space-between; margin-top: 10px; font-size: 12px; color: #bbb; }
+
+        /* ========== 我的样式 ========== */
+        .profile-header {
+            background: linear-gradient(135deg, #1890FF 0%, #0050B3 100%);
+            padding: 30px 20px 40px;
+            color: #fff;
+            position: relative;
+        }
+        .profile-info {
+            display: flex;
+            align-items: center;
+            gap: 14px;
+            margin-bottom: 20px;
+        }
+        .profile-avatar {
+            width: 64px;
+            height: 64px;
+            border-radius: 50%;
+            background: rgba(255,255,255,0.2);
+            border: 2px solid rgba(255,255,255,0.4);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 32px;
+        }
+        .profile-name { font-size: 20px; font-weight: 600; margin-bottom: 4px; }
+        .profile-dept { font-size: 13px; opacity: 0.8; }
+
+        .profile-menu {
+            background: #fff;
+            border-radius: 12px;
+            margin: -24px 16px 20px;
+            padding: 8px 0;
+            box-shadow: 0 2px 12px rgba(0,0,0,0.1);
+            position: relative;
+            z-index: 1;
+        }
+        .profile-menu-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            padding: 12px 0;
+        }
+        .pm-cell {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 6px;
+            cursor: pointer;
+        }
+        .pm-cell:active { opacity: 0.7; }
+        .pm-icon {
+            width: 44px;
+            height: 44px;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 22px;
+            color: #fff;
+        }
+        .pm-name { font-size: 12px; color: #555; margin-top: 2px; }
+
+        .menu-section { margin: 0 16px 12px; }
+        .menu-group {
+            background: #fff;
+            border-radius: 12px;
+            overflow: hidden;
+            box-shadow: 0 1px 6px rgba(0,0,0,0.06);
+        }
+        .menu-row {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 15px 16px;
+            cursor: pointer;
+            transition: background 0.15s;
+        }
+        .menu-row:active { background: #f5f5f5; }
+        .menu-row + .menu-row { border-top: 1px solid #f5f5f5; }
+        .mr-left { display: flex; align-items: center; gap: 12px; }
+        .mr-icon {
+            width: 32px;
+            height: 32px;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 18px;
+            color: #fff;
+        }
+        .mr-text { font-size: 15px; color: #333; }
+        .mr-arrow { font-size: 12px; color: #ccc; }
+        .logout-row { color: #F44336; }
+
+        /* ========== 底部Tab栏 ========== */
+        .tab-bar {
+            display: flex;
+            background: #fff;
+            border-top: 1px solid #eee;
+            padding: 6px 0;
+            padding-bottom: calc(6px + env(safe-area-inset-bottom, 0px));
+            flex-shrink: 0;
+            z-index: 100;
+        }
+        .tab-item {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 2px;
+            padding: 6px 0;
+            cursor: pointer;
+            -webkit-tap-highlight-color: transparent;
+            transition: color 0.2s;
+        }
+        .tab-item .ti-icon { font-size: 22px; color: #bbb; transition: color 0.2s; }
+        .tab-item .ti-label { font-size: 11px; color: #bbb; transition: color 0.2s; }
+        .tab-item.active .ti-icon { color: #1890FF; }
+        .tab-item.active .ti-label { color: #1890FF; }
+    </style>
+</head>
+<body>
+<div class="app-wrapper">
+
+    <!-- ==================== 首页 Tab ==================== -->
+    <div class="tab-content">
+        <div class="tab-panel active" id="panel-home">
+            <!-- Banner -->
+            <div class="home-banner">
+                <div class="banner-user">
+                    <div class="banner-avatar"><i class="layui-icon layui-icon-username"></i></div>
+                    <div class="banner-info">
+                        <h2 id="welcomeName">你好，学员</h2>
+                        <p id="welcomeMsg">继续学习，提升自己</p>
+                    </div>
+                </div>
+                <div class="banner-stats">
+                    <div class="stat-item"><div class="s-num" id="s-learning">0</div><div class="s-label">学习中</div></div>
+                    <div class="stat-item"><div class="s-num" id="s-done">0</div><div class="s-label">已完成</div></div>
+                    <div class="stat-item"><div class="s-num" id="s-exam">0</div><div class="s-label">已考试</div></div>
+                    <div class="stat-item"><div class="s-num" id="s-score">0</div><div class="s-label">平均分</div></div>
+                </div>
+            </div>
+
+            <!-- 快速入口 -->
+            <div class="home-section">
+                <div class="section-hd">
+                    <h3>快捷服务</h3>
+                </div>
+                <div class="quick-grid">
+                    <div class="quick-cell" onclick="location.href='practice.html'">
+                        <div class="qc-icon" style="background: linear-gradient(135deg,#FF6B6B,#FF8E53);"><i class="layui-icon layui-icon-survey"></i></div>
+                        <div class="qc-name">刷题</div>
+                    </div>
+                    <div class="quick-cell" onclick="location.href='exam.html'">
+                        <div class="qc-icon" style="background: linear-gradient(135deg,#667eea,#764ba2);"><i class="layui-icon layui-icon-form"></i></div>
+                        <div class="qc-name">考试</div>
+                    </div>
+                    <div class="quick-cell" onclick="location.href='course.html'">
+                        <div class="qc-icon" style="background: linear-gradient(135deg,#4ECDC4,#44A08D);"><i class="layui-icon layui-icon-video"></i></div>
+                        <div class="qc-name">课程</div>
+                    </div>
+                    <div class="quick-cell" onclick="switchTab('mine')">
+                        <div class="qc-icon" style="background: linear-gradient(135deg,#f1c40f,#f39c12);"><i class="layui-icon layui-icon-theme"></i></div>
+                        <div class="qc-name">证书</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 推荐课程 -->
+            <div class="home-section">
+                <div class="section-hd">
+                    <h3>推荐课程</h3>
+                    <a href="course.html">更多</a>
+                </div>
+                <div id="courseListHome"></div>
+            </div>
+        </div>
+
+        <!-- ==================== 知识库 Tab ==================== -->
+        <div class="tab-panel" id="panel-knowledge">
+            <div class="kb-header">
+                <div class="kb-back" onclick="switchTab('home')"><i class="layui-icon layui-icon-left"></i></div>
+                <div class="kb-search">
+                    <input type="text" class="search-input" id="kbSearchInput" placeholder="搜索知识库..." oninput="filterKnowledge()">
+                </div>
+            </div>
+            <div class="kb-category" id="kbCategory"></div>
+            <div class="kb-list" id="kbList">
+                <div class="empty-state"><i class="layui-icon layui-icon-loading-1"></i><p>加载中...</p></div>
+            </div>
+        </div>
+
+        <!-- ==================== 我的 Tab ==================== -->
+        <div class="tab-panel" id="panel-mine">
+            <div class="profile-header">
+                <div class="profile-info">
+                    <div class="profile-avatar"><i class="layui-icon layui-icon-username"></i></div>
+                    <div>
+                        <div class="profile-name" id="profileName">学员</div>
+                        <div class="profile-dept" id="profileDept">-</div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="profile-menu">
+                <div class="profile-menu-grid">
+                    <div class="pm-cell" onclick="location.href='record.html'">
+                        <div class="pm-icon" style="background: linear-gradient(135deg,#667eea,#764ba2);"><i class="layui-icon layui-icon-chart-screen"></i></div>
+                        <div class="pm-name">考试记录</div>
+                    </div>
+                    <div class="pm-cell" onclick="location.href='certificate.html'">
+                        <div class="pm-icon" style="background: linear-gradient(135deg,#f1c40f,#f39c12);"><i class="layui-icon layui-icon-theme"></i></div>
+                        <div class="pm-name">我的证书</div>
+                    </div>
+                    <div class="pm-cell" onclick="location.href='wrong-book.html'">
+                        <div class="pm-icon" style="background: linear-gradient(135deg,#FF6B6B,#FF8E53);"><i class="layui-icon layui-icon-survey"></i></div>
+                        <div class="pm-name">错题本</div>
+                    </div>
+                    <div class="pm-cell" onclick="location.href='profile.html'">
+                        <div class="pm-icon" style="background: linear-gradient(135deg,#4ECDC4,#44A08D);"><i class="layui-icon layui-icon-set-fill"></i></div>
+                        <div class="pm-name">个人设置</div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="menu-section">
+                <div class="menu-group">
+                    <div class="menu-row" onclick="location.href='profile.html'">
+                        <div class="mr-left">
+                            <div class="mr-icon" style="background:#1890FF;"><i class="layui-icon layui-icon-set"></i></div>
+                            <div class="mr-text">个人设置</div>
+                        </div>
+                        <i class="layui-icon layui-icon-right mr-arrow"></i>
+                    </div>
+                    <div class="menu-row" onclick="location.href='certificate.html'">
+                        <div class="mr-left">
+                            <div class="mr-icon" style="background:#f1c40f;"><i class="layui-icon layui-icon-theme"></i></div>
+                            <div class="mr-text">我的证书</div>
+                        </div>
+                        <i class="layui-icon layui-icon-right mr-arrow"></i>
+                    </div>
+                    <div class="menu-row" onclick="location.href='wrong-book.html'">
+                        <div class="mr-left">
+                            <div class="mr-icon" style="background:#FF6B6B;"><i class="layui-icon layui-icon-survey"></i></div>
+                            <div class="mr-text">纠错本</div>
+                        </div>
+                        <i class="layui-icon layui-icon-right mr-arrow"></i>
+                    </div>
+                    <div class="menu-row" onclick="location.href='record.html'">
+                        <div class="mr-left">
+                            <div class="mr-icon" style="background:#667eea;"><i class="layui-icon layui-icon-chart-screen"></i></div>
+                            <div class="mr-text">考试记录</div>
+                        </div>
+                        <i class="layui-icon layui-icon-right mr-arrow"></i>
+                    </div>
+                </div>
+            </div>
+
+            <div class="menu-section">
+                <div class="menu-group">
+                    <div class="menu-row" onclick="location.href='about.html'">
+                        <div class="mr-left">
+                            <div class="mr-icon" style="background:#4ECDC4;"><i class="layui-icon layui-icon-website"></i></div>
+                            <div class="mr-text">关于我们</div>
+                        </div>
+                        <i class="layui-icon layui-icon-right mr-arrow"></i>
+                    </div>
+                    <div class="menu-row logout-row" onclick="logout()">
+                        <div class="mr-left">
+                            <div class="mr-icon" style="background:#F44336;"><i class="layui-icon layui-icon-logout"></i></div>
+                            <div class="mr-text">退出登录</div>
+                        </div>
+                        <i class="layui-icon layui-icon-right mr-arrow"></i>
+                    </div>
+                </div>
+            </div>
+
+            <div style="text-align:center;padding:20px;font-size:12px;color:#ccc;">
+                在线培训考试系统 v1.0
+            </div>
+        </div>
+    </div><!-- /tab-content -->
+
+    <!-- ==================== 底部Tab栏 ==================== -->
+    <nav class="tab-bar">
+        <div class="tab-item active" data-tab="home" onclick="switchTab('home')">
+            <i class="layui-icon layui-icon-home ti-icon"></i>
+            <span class="ti-label">首页</span>
+        </div>
+        <div class="tab-item" data-tab="knowledge" onclick="switchTab('knowledge')">
+            <i class="layui-icon layui-icon-read ti-icon"></i>
+            <span class="ti-label">知识库</span>
+        </div>
+        <div class="tab-item" data-tab="mine" onclick="switchTab('mine')">
+            <i class="layui-icon layui-icon-user ti-icon"></i>
+            <span class="ti-label">我的</span>
+        </div>
+    </nav>
+
+</div><!-- /app-wrapper -->
+
+<script src="https://unpkg.com/jquery@3.7.1/dist/jquery.min.js"></script>
+<script src="https://unpkg.com/layui@2.9.23/dist/layui.js"></script>
+<script src="api.js"></script>
+<script>
+var layer;
+var allKnowledge = [];
+var activeCategory = 0;
+
+layui.use('layer', function() { layer = layui.layer; });
+
+// 检查登录
+if (!Api.checkLogin()) {}
+
+// 初始化
+var userInfo = JSON.parse(localStorage.getItem('user_info') || '{}');
+document.getElementById('welcomeName').textContent = '你好，' + (userInfo.realname || userInfo.username || '学员');
+document.getElementById('profileName').textContent = userInfo.realname || userInfo.username || '学员';
+document.getElementById('profileDept').textContent = userInfo.company || '在线学员';
+
+// Tab切换
+function switchTab(tab) {
+    document.querySelectorAll('.tab-panel').forEach(function(p) { p.classList.remove('active'); });
+    document.querySelectorAll('.tab-item').forEach(function(t) { t.classList.remove('active'); });
+    document.getElementById('panel-' + tab).classList.add('active');
+    document.querySelector('[data-tab="' + tab + '"]').classList.add('active');
+
+    if (tab === 'knowledge' && allKnowledge.length === 0) loadKnowledge();
+    if (tab === 'mine') loadMineData();
+}
+
+// 加载统计数据
+function loadStats() {
+    Promise.all([
+        Api.getCourseList(1, 10),
+        Api.getExamList(1, 10)
+    ]).then(function(results) {
+        var courses = results[0];
+        var exams = results[1];
+        var courseCount = (courses.code === 200 ? courses.count || 0 : 0);
+        document.getElementById('s-learning').textContent = Math.min(3, Math.ceil(courseCount * 0.6));
+        document.getElementById('s-done').textContent = Math.floor(courseCount * 0.3);
+        document.getElementById('s-exam').textContent = (exams.code === 200 ? exams.count || 0 : 0);
+        var records = exams.code === 200 ? exams.data || [] : [];
+        var totalScore = 0, scoreCount = 0;
+        records.forEach(function(r) { if (r.score !== null) { totalScore += parseFloat(r.score); scoreCount++; } });
+        document.getElementById('s-score').textContent = scoreCount > 0 ? Math.round(totalScore / scoreCount) : 0;
+    }).catch(function() {});
+}
+
+// 加载课程
+function loadCourses() {
+    var el = document.getElementById('courseListHome');
+    el.innerHTML = '<div class="empty-state"><i class="layui-icon layui-icon-loading-1"></i><p>加载中...</p></div>';
+    Api.getCourseList(1, 3).then(function(res) {
+        if (res.code === 200 && res.data && res.data.length > 0) {
+            var colors = [
+                'linear-gradient(135deg,#667eea,#764ba2)',
+                'linear-gradient(135deg,#4ECDC4,#44A08D)',
+                'linear-gradient(135deg,#FF6B6B,#FF8E53)',
+            ];
+            el.innerHTML = res.data.map(function(c, i) {
+                return '<div class="course-card" onclick="location.href=\'course.html\'">'
+                    + '<div class="course-cover" style="background:' + colors[i % colors.length] + ';"><i class="layui-icon layui-icon-video"></i></div>'
+                    + '<div class="course-body">'
+                    + '<div class="course-title">' + c.title + '</div>'
+                    + '<div class="course-meta">'
+                    + '<span><i class="layui-icon layui-icon-user"></i> ' + c.teacher + '</span>'
+                    + '<span><i class="layui-icon layui-icon-survey"></i> ' + c.chapter_count + '章节</span>'
+                    + '</div></div></div>';
+            }).join('');
+        } else {
+            el.innerHTML = '<div class="empty-state"><i class="layui-icon layui-icon-video"></i><p>暂无课程</p></div>';
+        }
+    }).catch(function() {
+        el.innerHTML = '<div class="empty-state"><i class="layui-icon layui-icon-video"></i><p>暂无课程</p></div>';
+    });
+}
+
+// 加载知识库
+function loadKnowledge() {
+    var el = document.getElementById('kbList');
+    var catEl = document.getElementById('kbCategory');
+    el.innerHTML = '<div class="empty-state"><i class="layui-icon layui-icon-loading-1"></i><p>加载中...</p></div>';
+
+    Api.getKnowledgeList(1, 50).then(function(res) {
+        if (res.code === 200 && res.data && res.data.length > 0) {
+            allKnowledge = res.data;
+            renderKnowledge(0, '');
+            // 分类
+            var cats = [];
+            allKnowledge.forEach(function(k) { if (cats.indexOf(k.category_id) < 0) cats.push(k.category_id); });
+            catEl.innerHTML = '<div class="cat-chip active" onclick="filterKnowledgeCat(0, this)">全部</div>'
+                + cats.map(function(cid) {
+                    return '<div class="cat-chip" onclick="filterKnowledgeCat(' + cid + ', this)">' + (cid || '其他') + '</div>';
+                }).join('');
+        } else {
+            el.innerHTML = '<div class="empty-state"><i class="layui-icon layui-icon-read"></i><p>暂无知识内容</p></div>';
+        }
+    }).catch(function() {
+        el.innerHTML = '<div class="empty-state"><i class="layui-icon layui-icon-read"></i><p>加载失败</p></div>';
+    });
+}
+
+function filterKnowledgeCat(cid, el) {
+    activeCategory = cid;
+    document.querySelectorAll('.cat-chip').forEach(function(c) { c.classList.remove('active'); });
+    el.classList.add('active');
+    var kw = document.getElementById('kbSearchInput').value.trim();
+    renderKnowledge(cid, kw);
+}
+
+function filterKnowledge() {
+    var kw = document.getElementById('kbSearchInput').value.trim();
+    renderKnowledge(activeCategory, kw);
+}
+
+function renderKnowledge(cid, kw) {
+    var el = document.getElementById('kbList');
+    var filtered = allKnowledge.filter(function(k) {
+        var matchCat = cid === 0 || k.category_id === cid;
+        var matchKw = !kw || (k.title && k.title.indexOf(kw) >= 0) || (k.content && k.content.indexOf(kw) >= 0);
+        return matchCat && matchKw;
+    });
+    if (filtered.length === 0) {
+        el.innerHTML = '<div class="empty-state"><i class="layui-icon layui-icon-read"></i><p>没有找到相关内容</p></div>';
+        return;
+    }
+    el.innerHTML = filtered.map(function(k) {
+        var summary = k.description || k.content || '';
+        summary = summary.replace(/<[^>]+>/g, '').substring(0, 80);
+        return '<div class="kb-item" onclick="location.href=\'knowledge-detail.html?id=' + k.id + '\'">'
+            + '<div class="kb-title">' + k.title + '</div>'
+            + '<div class="kb-summary">' + summary + '...</div>'
+            + '<div class="kb-footer"><span>' + (k.created_at ? k.created_at.substring(0, 10) : '') + '</span><span>查看详情 &gt;</span></div>'
+            + '</div>';
+    }).join('');
+}
+
+// 加载个人中心数据
+function loadMineData() {
+    Promise.all([
+        Api.getUserInfo(),
+        Api.getPracticeStats()
+    ]).then(function(results) {
+        var userRes = results[0];
+        var practiceRes = results[1];
+        if (userRes.code === 200) {
+            document.getElementById('profileName').textContent = userRes.data.realname || userRes.data.username;
+            document.getElementById('profileDept').textContent = userRes.data.company || userRes.data.department || '在线学员';
+        }
+        if (practiceRes.code === 200) {
+            document.getElementById('welcomeMsg').textContent = '已做 ' + (practiceRes.data.total_done || 0) + ' 题，纠错本 ' + (practiceRes.data.wrong_question_count || 0) + ' 题';
+        }
+    }).catch(function() {});
+}
+
+// 退出登录
+function logout() {
+    layer.confirm('确定要退出登录吗？', function() {
+        Api.logout();
+        location.href = 'login.html';
+    });
+}
+
+// 初始化加载
+loadStats();
+loadCourses();
+</script>
+</body>
+</html>

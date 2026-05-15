@@ -1,0 +1,213 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <title>答卷详情</title>
+  <link rel="stylesheet" href="../../vendor/layui/layui.css">
+  <style>
+    body { padding: 20px; background: #fff; }
+    .question-card { margin-bottom: 20px; border: 1px solid #e6e6e6; border-radius: 4px; overflow: hidden; }
+    .question-header { background: #f2f2f2; padding: 12px 15px; font-weight: bold; display: flex; justify-content: space-between; align-items: center; }
+    .question-body { padding: 15px; }
+    .option-item { padding: 6px 0; }
+    .correct-answer { color: #52c41a; font-weight: bold; }
+    .wrong-answer { color: #ff4d4f; font-weight: bold; }
+    .correct-bg { background: #f6ffed; border-left: 3px solid #52c41a; padding: 8px; margin: 5px 0; border-radius: 2px; }
+    .wrong-bg { background: #fff2f0; border-left: 3px solid #ff4d4f; padding: 8px; margin: 5px 0; border-radius: 2px; }
+    .analysis-section { background: #fffbe6; border-left: 3px solid #faad14; padding: 10px; margin-top: 10px; border-radius: 2px; }
+    .result-tag { display: inline-block; padding: 2px 8px; border-radius: 3px; font-size: 12px; }
+    .result-correct { background: #52c41a; color: #fff; }
+    .result-wrong { background: #ff4d4f; color: #fff; }
+    .question-meta { font-size: 12px; color: #999; margin-top: 5px; }
+  </style>
+</head>
+<body>
+<div id="answersContent">
+  <div id="loadingMsg" style="text-align:center;padding:40px;color:#999;">加载中...</div>
+</div>
+<script src="../../vendor/jquery/jquery.min.js"></script>
+<script src="../../vendor/layui/layui.js"></script>
+<script>
+(function() {
+  var BASE_API = '../../';
+  var examId = null;
+
+  function getQueryParam(name) {
+    var reg = new RegExp("(^|&)" + name + "=([^&]*)(&|$)", "i");
+    var r = window.location.search.substr(1).match(reg);
+    if (r != null) return decodeURIComponent(r[2]);
+    return null;
+  }
+
+  function getToken() {
+    if (window.parent && typeof window.parent.getAdminToken === 'function') {
+      return window.parent.getAdminToken();
+    }
+    try {
+      return localStorage.getItem('admin_token') || '';
+    } catch (e) {
+      return '';
+    }
+  }
+
+  function ajax(opts) {
+    return $.ajax({
+      url: opts.url,
+      type: opts.type || 'GET',
+      data: opts.data || {},
+      dataType: 'json',
+      beforeSend: function(xhr) {
+        var t = getToken();
+        if (t) xhr.setRequestHeader('Admin-Token', t);
+      },
+      success: function(res) {
+        if (res.code === 401) {
+          if (window.parent && typeof window.parent.clearAdminAuth === 'function') {
+            window.parent.clearAdminAuth();
+          } else {
+            try {
+              localStorage.removeItem('admin_token');
+              localStorage.removeItem('admin_user');
+            } catch (e) {}
+          }
+          parent.location.href = 'login.html';
+          return;
+        }
+        opts.success && opts.success(res);
+      },
+      error: function() {
+        layer.msg('请求失败', { icon: 2 });
+        opts.error && opts.error();
+      }
+    });
+  }
+
+  function escapeHtml(str) {
+    if (!str) return '';
+    return String(str).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+  }
+
+  function renderAnswers(data) {
+    var container = document.getElementById('answersContent');
+    document.getElementById('loadingMsg').style.display = 'none';
+
+    if (!data || data.length === 0) {
+      container.innerHTML = '<div style="text-align:center;padding:40px;color:#999;">暂无答卷数据</div>';
+      return;
+    }
+
+    var html = '';
+    data.forEach(function(q, idx) {
+      var num = idx + 1;
+      var isCorrect = q.is_correct == 1;
+      var resultClass = isCorrect ? 'result-correct' : 'result-wrong';
+      var resultText = isCorrect ? '正确' : '错误';
+
+      var typeMap = { single: '单选题', multi: '多选题', fill: '填空题', judge: '判断题', essay: '问答题' };
+      var typeName = typeMap[q.type] || q.type || '';
+
+      html += '<div class="question-card">';
+      html += '<div class="question-header">';
+      html += '<span>第 ' + num + ' 题 <span style="font-weight:normal;color:#888;margin-left:10px;font-size:12px;">[' + typeName + ']</span></span>';
+      html += '<span class="result-tag ' + resultClass + '">' + resultText + '</span>';
+      html += '</div>';
+      html += '<div class="question-body">';
+
+      html += '<div style="margin-bottom:10px;font-weight:bold;">题干：' + escapeHtml(q.stem) + '</div>';
+
+      if (q.type === 'single' || q.type === 'multi') {
+        var options = q.options || [];
+        options.forEach(function(opt) {
+          var isUserAnswer = false;
+          var isCorrectAnswer = false;
+          var label = opt.label || '';
+          var userAns = (q.user_answer || '').split(',');
+          var correctAns = (q.correct_answer || '').split(',');
+
+          userAns.forEach(function(ua) { if (ua.trim() === label) isUserAnswer = true; });
+          correctAns.forEach(function(ca) { if (ca.trim() === label) isCorrectAnswer = true; });
+
+          var cls = '';
+          if (isUserAnswer && isCorrectAnswer) cls = 'correct-bg';
+          else if (isUserAnswer && !isCorrectAnswer) cls = 'wrong-bg';
+
+          html += '<div class="option-item ' + cls + '">';
+          html += '<span style="font-weight:bold;">' + label + '.</span> ' + escapeHtml(opt.option_text);
+          if (isCorrectAnswer) html += ' <span style="color:#52c41a;font-weight:bold;">[正确答案]</span>';
+          if (isUserAnswer && !isCorrectAnswer) html += ' <span style="color:#ff4d4f;font-weight:bold;">[你的错误答案]</span>';
+          html += '</div>';
+        });
+
+        html += '<div style="margin-top:10px;padding:8px;background:#f5f5f5;border-radius:3px;">';
+        html += '<span style="color:#666;">你的答案：</span>';
+        var uaList = (q.user_answer || '').split(',').filter(function(a) { return a.trim(); });
+        if (uaList.length > 0) {
+          uaList.forEach(function(ua) { html += '<span class="' + (q.is_correct == 1 ? 'correct-answer' : 'wrong-answer') + '">' + ua.trim() + '</span> '; });
+        } else {
+          html += '<span style="color:#999;">未作答</span>';
+        }
+        html += '</div>';
+
+      } else if (q.type === 'judge') {
+        var uaVal = q.user_answer === 'true' || q.user_answer === '1' ? '正确' : '错误';
+        var caVal = q.correct_answer === 'true' || q.correct_answer === '1' ? '正确' : '错误';
+        var uaCls = q.is_correct == 1 ? 'correct-bg' : 'wrong-bg';
+        html += '<div class="' + uaCls + '" style="margin-bottom:8px;">';
+        html += '<span>你的答案：' + escapeHtml(uaVal) + '</span>';
+        html += '</div>';
+        html += '<div class="correct-bg">';
+        html += '<span>正确答案：' + escapeHtml(caVal) + '</span>';
+        html += '</div>';
+
+      } else if (q.type === 'fill' || q.type === 'essay') {
+        html += '<div style="margin-bottom:8px;">';
+        html += '<span style="color:#666;">你的答案：</span>';
+        html += '<div style="background:#f5f5f5;padding:8px;border-radius:3px;margin-top:5px;">' + escapeHtml(q.user_answer || '未作答') + '</div>';
+        html += '</div>';
+        html += '<div>';
+        html += '<span style="color:#52c41a;font-weight:bold;">参考答案：</span>';
+        html += '<div style="background:#f6ffed;padding:8px;border-radius:3px;margin-top:5px;">' + escapeHtml(q.correct_answer || '-') + '</div>';
+        html += '</div>';
+      }
+
+      if (q.analysis) {
+        html += '<div class="analysis-section">';
+        html += '<div style="font-weight:bold;margin-bottom:5px;">解析：</div>';
+        html += escapeHtml(q.analysis);
+        html += '</div>';
+      }
+
+      html += '</div>';
+      html += '</div>';
+    });
+
+    container.innerHTML = html;
+  }
+
+  layui.use(['layer'], function() {
+    var layer = layui.layer;
+
+    examId = getQueryParam('id');
+
+    if (!examId) {
+      layer.msg('缺少考试ID', { icon: 2 });
+      document.getElementById('loadingMsg').textContent = '缺少考试ID';
+      return;
+    }
+
+    ajax({
+      url: BASE_API + 'exam/' + examId + '/answers',
+      success: function(res) {
+        if (res.code === 200) {
+          renderAnswers(res.data);
+        } else {
+          layer.msg(res.msg || '加载失败', { icon: 2 });
+          document.getElementById('loadingMsg').textContent = res.msg || '加载失败';
+        }
+      }
+    });
+  });
+})();
+</script>
+</body>
+</html>

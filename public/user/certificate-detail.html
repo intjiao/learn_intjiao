@@ -1,0 +1,220 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>证书详情 - 在线培训考试系统</title>
+    <link rel="stylesheet" href="https://unpkg.com/layui@2.9.23/dist/css/layui.css">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'PingFang SC', sans-serif; background: #F5F7FA; color: #333; }
+        .page-header {
+            background: linear-gradient(135deg, #f1c40f, #f39c12);
+            padding: 12px 16px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            color: #fff;
+            position: sticky;
+            top: 0;
+            z-index: 10;
+        }
+        .back-btn { font-size: 18px; cursor: pointer; padding: 4px; }
+        .page-header h1 { font-size: 17px; font-weight: 600; flex: 1; }
+        .content { padding: 16px; }
+        .card, .panel, .empty-card {
+            background: #fff;
+            border-radius: 14px;
+            box-shadow: 0 1px 8px rgba(0, 0, 0, 0.06);
+            overflow: hidden;
+        }
+        .hero {
+            padding: 20px;
+            background: linear-gradient(135deg, rgba(241,196,15,0.12), rgba(243,156,18,0.12));
+            border-bottom: 1px solid #F3E7BB;
+        }
+        .hero-top { display: flex; justify-content: space-between; gap: 12px; align-items: flex-start; }
+        .icon-box {
+            width: 56px;
+            height: 56px;
+            border-radius: 16px;
+            background: linear-gradient(135deg, #f1c40f, #f39c12);
+            color: #fff;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 26px;
+            flex-shrink: 0;
+        }
+        .hero-title { font-size: 18px; font-weight: 700; margin-bottom: 6px; }
+        .hero-sub { font-size: 13px; color: #666; line-height: 1.6; }
+        .status-tag {
+            padding: 4px 10px;
+            border-radius: 999px;
+            font-size: 12px;
+            flex-shrink: 0;
+        }
+        .status-tag.valid { background: #E8F5E9; color: #43A047; }
+        .status-tag.expired { background: #FFEBEE; color: #F44336; }
+        .status-tag.revoked { background: #FFF3E0; color: #FF9800; }
+        .section-title { margin: 18px 4px 12px; font-size: 16px; font-weight: 700; }
+        .info-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px; padding: 16px; }
+        .info-item { background: #F9FBFD; border-radius: 12px; padding: 14px; }
+        .info-label { font-size: 12px; color: #999; margin-bottom: 6px; }
+        .info-value { font-size: 14px; color: #333; font-weight: 600; word-break: break-all; }
+        .action-row { display: flex; gap: 12px; padding: 16px; padding-top: 0; }
+        .action-btn {
+            border: none;
+            border-radius: 999px;
+            padding: 11px 18px;
+            font-size: 14px;
+            cursor: pointer;
+            flex: 1;
+        }
+        .action-btn.primary { background: linear-gradient(135deg, #f1c40f, #f39c12); color: #fff; }
+        .action-btn.secondary { background: #fff; border: 1px solid #D9E1EA; color: #555; }
+        .panel { padding: 16px; margin-top: 12px; }
+        .verify-box { margin-top: 12px; padding: 14px; border-radius: 12px; background: #FAFBFC; border: 1px solid #EEF2F6; }
+        .verify-title { font-size: 14px; font-weight: 700; margin-bottom: 10px; }
+        .verify-row { display: flex; justify-content: space-between; gap: 12px; margin-bottom: 8px; font-size: 13px; color: #666; }
+        .verify-row:last-child { margin-bottom: 0; }
+        .empty-card { padding: 48px 20px; text-align: center; color: #999; }
+        .empty-card i { display: block; font-size: 42px; margin-bottom: 12px; color: #C0C4CC; }
+        .file-link { color: #1890FF; text-decoration: none; }
+    </style>
+</head>
+<body>
+    <div class="page-header">
+        <div class="back-btn" onclick="goBack()"><i class="layui-icon layui-icon-left"></i></div>
+        <h1>证书详情</h1>
+    </div>
+
+    <div class="content">
+        <div id="detailRoot" class="card">
+            <div class="empty-card"><i class="layui-icon layui-icon-loading-1"></i><p>加载中...</p></div>
+        </div>
+    </div>
+
+    <script src="https://unpkg.com/jquery@3.7.1/dist/jquery.min.js"></script>
+    <script src="https://unpkg.com/layui@2.9.23/dist/layui.js"></script>
+    <script src="api.js"></script>
+    <script>
+        if (!Api.checkLogin()) {}
+
+        var certId = new URLSearchParams(location.search).get('id') || '';
+        var certificateData = null;
+
+        function safe(value) {
+            return String(value == null ? '' : value)
+                .replace(/&/g, '&amp;')
+                .replace(/</g, '&lt;')
+                .replace(/>/g, '&gt;')
+                .replace(/"/g, '&quot;')
+                .replace(/'/g, '&#39;');
+        }
+
+        function goBack() {
+            if (document.referrer) {
+                history.back();
+            } else {
+                location.href = 'certificate.html';
+            }
+        }
+
+        function getStatusClass(cert) {
+            if (!cert) return 'valid';
+            if (Number(cert.status || 1) === 2) return 'revoked';
+            if ((cert.expire_date && cert.expire_date < new Date().toISOString().slice(0, 10)) || Number(cert.status || 1) === 3) {
+                return 'expired';
+            }
+            return 'valid';
+        }
+
+        function getStatusText(cert) {
+            var status = getStatusClass(cert);
+            if (status === 'revoked') return '已撤销';
+            if (status === 'expired') return '已过期';
+            return '有效';
+        }
+
+        function loadDetail() {
+            if (!certId) {
+                document.getElementById('detailRoot').innerHTML = '<div class="empty-card"><i class="layui-icon layui-icon-file"></i><p>证书参数缺失</p></div>';
+                return;
+            }
+
+            Api.getCertificateDetail(certId).then(function(res) {
+                if (res.code !== 200 || !res.data) {
+                    document.getElementById('detailRoot').innerHTML = '<div class="empty-card"><i class="layui-icon layui-icon-file"></i><p>' + safe(res.msg || '证书加载失败') + '</p></div>';
+                    return;
+                }
+                certificateData = res.data;
+                renderDetail();
+            }).catch(function() {
+                document.getElementById('detailRoot').innerHTML = '<div class="empty-card"><i class="layui-icon layui-icon-file"></i><p>证书加载失败</p></div>';
+            });
+        }
+
+        function renderDetail() {
+            var cert = certificateData || {};
+            var statusClass = getStatusClass(cert);
+            var statusText = getStatusText(cert);
+            var fileLink = cert.file_path ? ('<a class="file-link" href="' + safe(cert.file_path) + '" target="_blank">查看证书文件</a>') : '暂无文件';
+
+            document.getElementById('detailRoot').innerHTML = ''
+                + '<div class="hero">'
+                + '  <div class="hero-top">'
+                + '    <div style="display:flex;gap:12px;min-width:0;">'
+                + '      <div class="icon-box"><i class="layui-icon layui-icon-theme"></i></div>'
+                + '      <div style="min-width:0;">'
+                + '        <div class="hero-title">' + safe(cert.task_title || '培训证书') + '</div>'
+                + '        <div class="hero-sub">' + safe(cert.user_name || '学员') + ' · ' + safe(cert.cert_no || '--') + '</div>'
+                + '      </div>'
+                + '    </div>'
+                + '    <span class="status-tag ' + statusClass + '">' + statusText + '</span>'
+                + '  </div>'
+                + '</div>'
+                + '<div class="info-grid">'
+                + '  <div class="info-item"><div class="info-label">证书编号</div><div class="info-value">' + safe(cert.cert_no || '--') + '</div></div>'
+                + '  <div class="info-item"><div class="info-label">颁发日期</div><div class="info-value">' + safe(cert.issue_date || '--') + '</div></div>'
+                + '  <div class="info-item"><div class="info-label">有效期至</div><div class="info-value">' + safe(cert.expire_date || '永久有效') + '</div></div>'
+                + '  <div class="info-item"><div class="info-label">证书文件</div><div class="info-value">' + fileLink + '</div></div>'
+                + '</div>'
+                + (cert.revoke_reason ? '<div class="panel"><div class="verify-title">撤销原因</div><div style="font-size:13px;color:#666;line-height:1.7;">' + safe(cert.revoke_reason) + '</div></div>' : '')
+                + '<div class="action-row">'
+                + '  <button class="action-btn primary" onclick="verifyCertificate()">验证证书</button>'
+                + '  <button class="action-btn secondary" onclick="goBack()">返回列表</button>'
+                + '</div>'
+                + '<div id="verifyRoot"></div>';
+        }
+
+        function verifyCertificate() {
+            if (!certificateData || !certificateData.cert_no) return;
+            Api.verifyCertificate(certificateData.cert_no).then(function(res) {
+                if (res.code !== 200) {
+                    Api.msg(res.msg || '验证失败', 'error');
+                    return;
+                }
+                var result = res.data || {};
+                document.getElementById('verifyRoot').innerHTML = ''
+                    + '<div class="panel">'
+                    + '  <div class="verify-title">验证结果</div>'
+                    + '  <div class="verify-box">'
+                    + '    <div class="verify-row"><span>是否有效</span><strong>' + (result.valid ? '是' : '否') + '</strong></div>'
+                    + '    <div class="verify-row"><span>提示</span><span>' + safe(result.message || '校验完成') + '</span></div>'
+                    + (result.data ? ''
+                    + '    <div class="verify-row"><span>持有人</span><span>' + safe(result.data.user_name || '--') + '</span></div>'
+                    + '    <div class="verify-row"><span>所属任务</span><span>' + safe(result.data.task_title || '--') + '</span></div>'
+                    + '    <div class="verify-row"><span>状态</span><span>' + safe(String(result.data.status || '--')) + '</span></div>'
+                    : '')
+                    + '  </div>'
+                    + '</div>';
+            }).catch(function() {
+                Api.msg('验证失败', 'error');
+            });
+        }
+
+        loadDetail();
+    </script>
+</body>
+</html>

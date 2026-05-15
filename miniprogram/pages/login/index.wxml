@@ -1,0 +1,31 @@
+<!-- miniprogram/pages/login/index.wxml -->
+<view class="login-page">
+  <view class="login-header">
+    <view class="logo">
+      <text class="logo-text">培训考试</text>
+    </view>
+    <text class="slogan">在线学习 · 随时考试 · 轻松取证</text>
+  </view>
+
+  <view class="login-form">
+    <view class="input-group">
+      <view class="input-item">
+        <view class="input-icon">&#xe613;</view>
+        <input type="text" placeholder="请输入用户名" value="{{username}}" bindinput="onUsernameInput" class="input-field" />
+      </view>
+      <view class="input-item">
+        <view class="input-icon">&#xe614;</view>
+        <input type="password" placeholder="请输入密码" value="{{password}}" bindinput="onPasswordInput" class="input-field" />
+      </view>
+    </view>
+
+    <view class="btn-login {{loading ? 'loading' : ''}}" bindtap="login">
+      <text wx:if="{{!loading}}">登 录</text>
+      <text wx:else>登录中...</text>
+    </view>
+
+    <view class="login-footer">
+      <text class="register-link" bindtap="goRegister">还没有账号？立即注册</text>
+    </view>
+  </view>
+</view>

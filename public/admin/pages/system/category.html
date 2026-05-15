@@ -1,0 +1,285 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <title>分类管理</title>
+  <link rel="stylesheet" href="../../vendor/layui/layui.css">
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body { background: #f5f7fa; }
+    .search-bar {
+      padding: 14px 16px 0;
+      background: #fff;
+      border-bottom: 1px solid #f0f0f0;
+      position: relative;
+      z-index: 30;
+      overflow: visible;
+    }
+    .search-bar .layui-form,
+    .search-bar .layui-form-item,
+    .search-bar .layui-inline,
+    .search-bar .layui-input-inline,
+    .search-bar .layui-form-select,
+    .search-bar .layui-form-select dl {
+      overflow: visible !important;
+    }
+    .search-bar .layui-form-select dl {
+      z-index: 9999;
+    }
+    .search-bar .layui-form-item { margin-bottom: 12px; }
+    .toolbar {
+      padding: 12px 16px;
+      background: #fff;
+      border-bottom: 1px solid #f0f0f0;
+      position: relative;
+      z-index: 10;
+    }
+    .category-wrap {
+      background: #fff;
+      padding: 16px;
+      position: relative;
+      z-index: 1;
+    }
+    .tree-type-badge { display: inline-block; padding: 2px 8px; border-radius: 3px; font-size: 12px; }
+    .tree-type-question { background: #e6f7ff; color: #1890ff; }
+    .tree-type-course { background: #fff1e6; color: #fa8c16; }
+    .tree-type-knowledge { background: #f6ffed; color: #52c41a; }
+    .tree-type-user { background: #f9f0ff; color: #722ed1; }
+    .tree-sort { color: #999; font-size: 12px; }
+    .tree-status-on { color: #43e97b; }
+    .tree-status-off { color: #999; }
+    .tree-empty { text-align: center; padding: 40px; color: #999; }
+  </style>
+</head>
+<body>
+  <div class="search-bar">
+    <form class="layui-form" lay-filter="searchForm">
+      <div class="layui-form-item" style="margin-bottom: 10px;">
+        <div class="layui-inline">
+          <label class="layui-form-label" style="width: 90px;">分类类型</label>
+          <div class="layui-input-inline">
+            <select name="type" id="typeSelect" lay-filter="typeChange">
+              <option value="question">试题分类</option>
+              <option value="course">课程分类</option>
+              <option value="knowledge">知识库分类</option>
+              <option value="user">用户分组</option>
+            </select>
+          </div>
+        </div>
+      </div>
+    </form>
+  </div>
+
+  <div class="toolbar">
+    <button class="layui-btn layui-btn-sm" id="btnAddRoot"><i class="layui-icon layui-icon-add-1"></i> 添加顶级分类</button>
+  </div>
+
+  <div class="category-wrap">
+    <table class="layui-table" style="background: transparent;">
+      <colgroup>
+        <col width="200">
+        <col width="120">
+        <col width="80">
+        <col width="100">
+        <col width="280">
+      </colgroup>
+      <thead>
+        <tr style="background:#f0f2f5;">
+          <th>分类名称</th>
+          <th>类型</th>
+          <th>排序</th>
+          <th>状态</th>
+          <th>操作</th>
+        </tr>
+      </thead>
+      <tbody id="categoryBody">
+        <tr><td colspan="5" class="tree-empty">加载中...</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <script src="../../vendor/jquery/jquery.min.js"></script>
+  <script src="../../vendor/layui/layui.js"></script>
+  <script>
+  (function() {
+    var allowedTypes = ['question', 'course', 'knowledge', 'user'];
+
+    function getQueryParam(name) {
+      var reg = new RegExp("(^|&)" + name + "=([^&]*)(&|$)", "i");
+      var match = window.location.search.substr(1).match(reg);
+      return match ? decodeURIComponent(match[2]) : '';
+    }
+
+    var currentType = getQueryParam('type') || 'question';
+    if (allowedTypes.indexOf(currentType) === -1) {
+      currentType = 'question';
+    }
+
+    var typeMap = {
+      question: { text: '试题分类', cls: 'tree-type-question' },
+      course:   { text: '课程分类', cls: 'tree-type-course'   },
+      knowledge:{ text: '知识库',   cls: 'tree-type-knowledge' },
+      user:     { text: '用户分组', cls: 'tree-type-user'     }
+    };
+
+    function getToken() {
+      return localStorage.getItem('admin_token') || '';
+    }
+
+    function ajax(opts) {
+      return $.ajax({
+        url: opts.url,
+        type: opts.type || 'GET',
+        data: opts.data || {},
+        dataType: 'json',
+        beforeSend: function(xhr) {
+          var t = getToken();
+          if (t) xhr.setRequestHeader('Admin-Token', t);
+        },
+        success: function(res) {
+          if (res.code === 401) {
+            localStorage.removeItem('admin_token');
+            localStorage.removeItem('admin_user');
+            parent.location.href = 'login.html';
+            return;
+          }
+          opts.success && opts.success(res);
+        },
+        error: function() {
+          layer.msg('网络请求失败', { icon: 2 });
+          opts.error && opts.error();
+        }
+      });
+    }
+
+    function showSuccess(msg) { layer.msg(msg, { icon: 1, shade: 0.3, time: 1500 }); }
+    function showError(msg)   { layer.msg(msg, { icon: 2, shade: 0.3, time: 2000 }); }
+
+    function openForm(title, url, w, h) {
+      w = w || 500; h = h || 400;
+      parent.layer.open({
+        type: 2,
+        title: title,
+        area: [w + 'px', h + 'px'],
+        fix: false,
+        maxmin: true,
+        shadeClose: false,
+        shade: 0.4,
+        content: url,
+        zIndex: parent.layer.zIndex
+      });
+    }
+
+    function buildRowHtml(item, level) {
+      var typeInfo = typeMap[item.type] || { text: item.type, cls: 'tree-type-question' };
+      var indent = level * 28;
+      var nameStyle = level === 0 ? 'font-weight:600;color:#333;' : 'color:#555;';
+      var statusHtml = item.status == 1
+        ? '<span class="tree-status-on">&#10003; 启用</span>'
+        : '<span class="tree-status-off">&#10005; 禁用</span>';
+      var escapedName = item.name.replace(/'/g, "\\'");
+      return '<tr data-id="' + item.id + '">' +
+        '<td style="padding-left:' + indent + 'px;">' +
+          '<span style="' + nameStyle + '">' + item.name + '</span>' +
+        '</td>' +
+        '<td><span class="tree-type-badge ' + typeInfo.cls + '">' + typeInfo.text + '</span></td>' +
+        '<td><span class="tree-sort">' + (item.sort || 0) + '</span></td>' +
+        '<td>' + statusHtml + '</td>' +
+        '<td>' +
+          '<button class="layui-btn layui-btn-xs" onclick="editCat(' + item.id + ')"><i class="layui-icon layui-icon-edit"></i> 编辑</button>' +
+          '<button class="layui-btn layui-btn-normal layui-btn-xs" onclick="addChildCat(' + item.id + ')"><i class="layui-icon layui-icon-add-1"></i> 子分类</button>' +
+          '<button class="layui-btn layui-btn-danger layui-btn-xs" onclick="delCat(' + item.id + ',\'' + escapedName + '\')"><i class="layui-icon layui-icon-delete"></i> 删除</button>' +
+        '</td>' +
+      '</tr>';
+    }
+
+    function renderTree(items, level) {
+      level = level || 0;
+      var html = '';
+      items.forEach(function(item) {
+        html += buildRowHtml(item, level);
+        if (item.children && item.children.length) {
+          html += renderTree(item.children, level + 1);
+        }
+      });
+      return html;
+    }
+
+    function loadTree() {
+      $('#categoryBody').html('<tr><td colspan="5" class="tree-empty">加载中...</td></tr>');
+      ajax({
+        url: '../../category/tree',
+        data: { type: currentType },
+        success: function(res) {
+          if (res.code === 200) {
+            var data = res.data || [];
+            if (data.length === 0) {
+              $('#categoryBody').html('<tr><td colspan="5" class="tree-empty">暂无数据</td></tr>');
+            } else {
+              $('#categoryBody').html(renderTree(data, 0));
+            }
+          } else {
+            $('#categoryBody').html('<tr><td colspan="5" class="tree-empty">加载失败</td></tr>');
+          }
+        }
+      });
+    }
+
+    function deleteCat(id, name) {
+      layer.confirm('确定删除分类【' + name + '】吗？', function(idx) {
+        ajax({
+          url: '../../category/' + id,
+          type: 'DELETE',
+          success: function(res) {
+            if (res.code === 200) {
+              showSuccess('删除成功');
+              loadTree();
+            } else {
+              showError(res.msg || '删除失败');
+            }
+          }
+        });
+        layer.close(idx);
+      });
+    }
+
+    layui.use(['form', 'layer'], function() {
+      var form = layui.form;
+
+      $('#typeSelect').val(currentType);
+      form.render('select');
+      loadTree();
+
+      form.on('select(typeChange)', function(data) {
+        currentType = data.value;
+        loadTree();
+      });
+
+      $('#btnAddRoot').on('click', function() {
+        openForm('添加分类', 'pages/system/category_form.html?type=' + currentType, 500, 400);
+      });
+
+      window.editCat = function(id) {
+        openForm('编辑分类', 'pages/system/category_form.html?id=' + id, 500, 400);
+      };
+
+      window.addChildCat = function(parentId) {
+        openForm('添加子分类', 'pages/system/category_form.html?type=' + currentType + '&parent_id=' + parentId, 500, 400);
+      };
+
+      window.delCat = function(id, name) {
+        deleteCat(id, name);
+      };
+
+      window.refreshTree = function() {
+        loadTree();
+      };
+
+      window.refreshTable = function() {
+        loadTree();
+      };
+    });
+  })();
+  </script>
+</body>
+</html>

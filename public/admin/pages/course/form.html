@@ -1,0 +1,199 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <title>课程表单</title>
+  <link rel="stylesheet" href="../../vendor/layui/layui.css">
+  <link rel="stylesheet" href="../../css/admin.css">
+  <style>body { padding: 20px; background: #fff; }</style>
+</head>
+<body class="admin-embedded-page">
+<div class="admin-form-shell">
+<form class="layui-form" lay-filter="mainForm" style="max-width:700px;">
+  <div class="layui-form-item">
+    <label class="layui-form-label">课程标题</label>
+    <div class="layui-input-block">
+      <input type="text" name="title" class="layui-input" lay-verify="required" placeholder="请输入课程标题">
+    </div>
+  </div>
+  <div class="layui-form-item">
+    <label class="layui-form-label">所属分类</label>
+    <div class="layui-input-block">
+      <select name="category_id" id="selCategory" lay-search>
+        <option value="">请选择分类</option>
+      </select>
+    </div>
+  </div>
+  <div class="layui-form-item">
+    <label class="layui-form-label">授课教师</label>
+    <div class="layui-input-block">
+      <input type="text" name="teacher" class="layui-input" placeholder="请输入授课教师">
+    </div>
+  </div>
+  <div class="layui-form-item">
+    <label class="layui-form-label">价格(元)</label>
+    <div class="layui-input-block">
+      <input type="number" name="price" value="0" class="layui-input" style="width:200px;" min="0" step="0.01">
+    </div>
+  </div>
+  <div class="layui-form-item">
+    <label class="layui-form-label">封面图URL</label>
+    <div class="layui-input-block">
+      <input type="text" name="cover_image" class="layui-input" placeholder="请输入封面图片URL">
+    </div>
+  </div>
+  <div class="layui-form-item">
+    <label class="layui-form-label">课程简介</label>
+    <div class="layui-input-block">
+      <textarea name="description" class="layui-textarea" placeholder="请输入课程简介" rows="4"></textarea>
+    </div>
+  </div>
+  <div class="layui-form-item">
+    <label class="layui-form-label">章节管理</label>
+    <div class="layui-input-block">
+      <iframe id="iframeChapters" src="" style="width:100%;height:300px;border:1px solid #e6e6e6;border-radius:4px;" frameborder="0"></iframe>
+    </div>
+  </div>
+  <div class="layui-form-item">
+    <label class="layui-form-label">状态</label>
+    <div class="layui-input-block">
+      <input type="checkbox" name="status" value="1" lay-skin="switch" lay-text="启用|禁用" checked>
+    </div>
+  </div>
+  <div class="layui-form-item">
+    <div class="layui-input-block">
+      <button class="layui-btn" lay-submit lay-filter="submitBtn">保存</button>
+      <button type="button" class="layui-btn layui-btn-primary" id="btnCancel">取消</button>
+    </div>
+  </div>
+</form>
+</div>
+<script src="../../vendor/jquery/jquery.min.js"></script>
+<script src="../../vendor/layui/layui.js"></script>
+<script>
+(function() {
+  var BASE_API = '../../';
+  var id = null;
+
+  function getQueryParam(name) {
+    var reg = new RegExp("(^|&)" + name + "=([^&]*)(&|$)", "i");
+    var r = window.location.search.substr(1).match(reg);
+    if (r != null) return decodeURIComponent(r[2]);
+    return null;
+  }
+
+  function getToken() {
+    return localStorage.getItem('admin_token') || '';
+  }
+
+  function ajax(opts) {
+    return $.ajax({
+      url: opts.url,
+      type: opts.type || 'GET',
+      data: opts.data || {},
+      dataType: 'json',
+      beforeSend: function(xhr) {
+        var t = getToken();
+        if (t) xhr.setRequestHeader('Admin-Token', t);
+      },
+      success: function(res) {
+        if (res.code === 401) {
+          localStorage.removeItem('admin_token');
+          localStorage.removeItem('admin_user');
+          parent.location.href = 'login.html';
+          return;
+        }
+        opts.success && opts.success(res);
+      },
+      error: function() {
+        layer.msg('请求失败', { icon: 2 });
+        opts.error && opts.error();
+      }
+    });
+  }
+
+  layui.use(['form', 'layer'], function() {
+    var form = layui.form;
+    var layer = layui.layer;
+
+    id = getQueryParam('id');
+
+    ajax({
+      url: BASE_API + 'category/tree?type=course',
+      success: function(res) {
+        if (res.code === 200) {
+          buildCategoryOptions(res.data, '');
+          form.render('select');
+        }
+      }
+    });
+
+    function buildCategoryOptions(data, prefix) {
+      var sel = document.getElementById('selCategory');
+      data.forEach(function(item) {
+        var opt = document.createElement('option');
+        opt.value = item.id;
+        opt.textContent = prefix + item.name;
+        sel.appendChild(opt);
+        if (item.children && item.children.length > 0) {
+          buildCategoryOptions(item.children, prefix + '　');
+        }
+      });
+    }
+
+    var courseId = id || ('new_' + Date.now());
+    document.getElementById('iframeChapters').src = '../course/chapters.html?course_id=' + courseId;
+
+    if (id) {
+      ajax({
+        url: BASE_API + 'course/' + id,
+        success: function(res) {
+          if (res.code === 200) {
+            form.val('mainForm', {
+              'title': res.data.title,
+              'category_id': res.data.category_id,
+              'teacher': res.data.teacher,
+              'price': res.data.price,
+              'cover_image': res.data.cover_image,
+              'description': res.data.description,
+              'status': res.data.status == 1
+            });
+            form.render();
+          }
+        }
+      });
+    }
+
+    $('#btnCancel').on('click', function() {
+      parent.layer.close(parent.layer.getFrameIndex(window.name));
+    });
+
+    form.on('submit(submitBtn)', function(formData) {
+      var data = formData.field;
+      data.status = (data.status === 'on' || data.status === '1') ? 1 : 0;
+
+      var url = id ? BASE_API + 'course/' + id : BASE_API + 'course';
+      var type = id ? 'PUT' : 'POST';
+
+      ajax({
+        url: url,
+        type: type,
+        data: data,
+        success: function(res) {
+          if (res.code === 200) {
+            parent.showSuccess ? parent.showSuccess(id ? '更新成功' : '添加成功') : layer.msg(id ? '更新成功' : '添加成功', { icon: 1 });
+            parent.layer.close(parent.layer.getFrameIndex(window.name));
+            if (parent.refreshTable) parent.refreshTable();
+          } else {
+            if (parent.showError) parent.showError(res.msg);
+            else layer.msg(res.msg, { icon: 2 });
+          }
+        }
+      });
+      return false;
+    });
+  });
+})();
+</script>
+</body>
+</html>

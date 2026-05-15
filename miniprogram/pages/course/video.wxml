@@ -1,0 +1,31 @@
+<!-- miniprogram/pages/course/video.wxml -->
+<view class="page">
+  <view class="hero-card">
+    <view class="hero-top">
+      <text class="title">{{title || '课程资源'}}</text>
+      <text class="tag">{{type === 'video' ? '视频' : type === 'audio' ? '音频' : type === 'image' ? '图片' : type === 'document' ? '文档' : '附件'}}</text>
+    </view>
+    <text class="desc">打开资源后会自动记录学习进度{{progress ? '（当前进度 ' + progress + '%）' : ''}}</text>
+  </view>
+
+  <view class="preview-card" wx:if="{{type === 'video' && url}}">
+    <video class="player" src="{{url}}" controls autoplay></video>
+  </view>
+
+  <view class="preview-card" wx:elif="{{type === 'audio' && url}}">
+    <audio class="player audio-player" src="{{url}}" controls></audio>
+  </view>
+
+  <view class="preview-card" wx:elif="{{type === 'image' && url}}">
+    <image class="image-preview" src="{{url}}" mode="widthFix" bindtap="previewImage"></image>
+    <view class="tip-text">点击图片可全屏预览</view>
+  </view>
+
+  <view class="preview-card" wx:else>
+    <view class="file-box">
+      <text class="file-title">当前资源暂不支持内嵌预览</text>
+      <text class="file-desc">可以复制资源地址后在浏览器或系统应用中打开。</text>
+      <view class="copy-btn" bindtap="copyLink">复制资源地址</view>
+    </view>
+  </view>
+</view>

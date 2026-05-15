@@ -1,0 +1,308 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>个人设置 - 在线培训考试系统</title>
+    <link rel="stylesheet" href="https://unpkg.com/layui@2.9.23/dist/css/layui.css">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'PingFang SC', sans-serif; background: #F5F7FA; }
+
+        .page-header {
+            background: linear-gradient(135deg, #1890FF, #0050B3);
+            padding: 12px 16px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            color: #fff;
+            position: sticky;
+            top: 0;
+            z-index: 10;
+        }
+        .page-header .back-btn { font-size: 18px; cursor: pointer; padding: 4px; }
+        .page-header h1 { font-size: 17px; font-weight: 600; flex: 1; }
+
+        .profile-banner {
+            background: linear-gradient(135deg, #1890FF, #0050B3);
+            padding: 30px 20px 40px;
+            color: #fff;
+        }
+        .profile-info { display: flex; align-items: center; gap: 14px; }
+        .profile-avatar {
+            width: 64px;
+            height: 64px;
+            border-radius: 50%;
+            background: rgba(255,255,255,0.2);
+            border: 2px solid rgba(255,255,255,0.4);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 32px;
+        }
+        .profile-name { font-size: 20px; font-weight: 600; margin-bottom: 4px; }
+        .profile-dept { font-size: 13px; opacity: 0.8; }
+
+        .info-card {
+            background: #fff;
+            border-radius: 12px;
+            margin: -20px 16px 20px;
+            padding: 16px;
+            box-shadow: 0 2px 12px rgba(0,0,0,0.1);
+            position: relative;
+            z-index: 1;
+        }
+        .info-row {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 12px 0;
+        }
+        .info-row + .info-row { border-top: 1px solid #f0f0f0; }
+        .info-label { font-size: 15px; color: #333; display: flex; align-items: center; gap: 8px; }
+        .info-value { font-size: 14px; color: #999; }
+        .info-value.changable { color: #1890FF; cursor: pointer; }
+
+        .form-card {
+            margin: 0 16px 16px;
+        }
+        .form-group {
+            background: #fff;
+            border-radius: 12px;
+            padding: 4px 16px;
+            margin-bottom: 12px;
+            box-shadow: 0 1px 6px rgba(0,0,0,0.06);
+        }
+        .form-label { font-size: 13px; color: #999; padding-top: 12px; }
+        .form-input {
+            width: 100%;
+            height: 44px;
+            border: none;
+            outline: none;
+            font-size: 15px;
+            color: #333;
+            background: transparent;
+        }
+
+        .btn-save {
+            display: block;
+            width: calc(100% - 32px);
+            margin: 0 16px 30px;
+            height: 46px;
+            background: linear-gradient(135deg, #1890FF, #0050B3);
+            color: #fff;
+            border: none;
+            border-radius: 23px;
+            font-size: 16px;
+            cursor: pointer;
+            box-shadow: 0 4px 15px rgba(24,144,255,0.3);
+        }
+        .btn-save:active { opacity: 0.9; transform: scale(0.98); }
+        .btn-save:disabled { opacity: 0.6; cursor: not-allowed; }
+
+        .menu-group {
+            background: #fff;
+            border-radius: 12px;
+            margin: 0 16px 12px;
+            overflow: hidden;
+            box-shadow: 0 1px 6px rgba(0,0,0,0.06);
+        }
+        .menu-row {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 15px 16px;
+            cursor: pointer;
+        }
+        .menu-row + .menu-row { border-top: 1px solid #f0f5f5; }
+        .menu-row:active { background: #f5f5f5; }
+        .mr-left { display: flex; align-items: center; gap: 10px; }
+        .mr-icon { width: 28px; height: 28px; border-radius: 6px; display: flex; align-items: center; justify-content: center; font-size: 16px; color: #fff; }
+        .mr-text { font-size: 15px; color: #333; }
+        .mr-arrow { font-size: 12px; color: #ccc; }
+        .danger-text { color: #F44336; font-size: 15px; }
+    </style>
+</head>
+<body>
+    <div class="page-header">
+        <div class="back-btn" onclick="location.href='index.html'"><i class="layui-icon layui-icon-left"></i></div>
+        <h1>个人设置</h1>
+    </div>
+
+    <div class="profile-banner">
+        <div class="profile-info">
+            <div class="profile-avatar"><i class="layui-icon layui-icon-username"></i></div>
+            <div>
+                <div class="profile-name" id="realname">加载中...</div>
+                <div class="profile-dept" id="company">-</div>
+            </div>
+        </div>
+    </div>
+
+    <div class="info-card">
+        <div class="info-row">
+            <div class="info-label"><i class="layui-icon layui-icon-username" style="color:#1890FF;"></i> 用户名</div>
+            <div class="info-value" id="username">-</div>
+        </div>
+        <div class="info-row">
+            <div class="info-label"><i class="layui-icon layui-icon-cellphone" style="color:#4ECDC4;"></i> 手机号</div>
+            <div class="info-value" id="phone">-</div>
+        </div>
+        <div class="info-row">
+            <div class="info-label"><i class="layui-icon layui-icon-email" style="color:#667eea;"></i> 邮箱</div>
+            <div class="info-value" id="email">-</div>
+        </div>
+    </div>
+
+    <div class="form-card">
+        <div class="menu-group">
+            <div class="menu-row" onclick="showEditName()">
+                <div class="mr-left">
+                    <div class="mr-icon" style="background:#1890FF;"><i class="layui-icon layui-icon-set-fill"></i></div>
+                    <div class="mr-text">修改姓名</div>
+                </div>
+                <i class="layui-icon layui-icon-right mr-arrow"></i>
+            </div>
+            <div class="menu-row" onclick="showEditPhone()">
+                <div class="mr-left">
+                    <div class="mr-icon" style="background:#4ECDC4;"><i class="layui-icon layui-icon-cellphone"></i></div>
+                    <div class="mr-text">修改手机号</div>
+                </div>
+                <i class="layui-icon layui-icon-right mr-arrow"></i>
+            </div>
+            <div class="menu-row" onclick="showEditPwd()">
+                <div class="mr-left">
+                    <div class="mr-icon" style="background:#667eea;"><i class="layui-icon layui-icon-password"></i></div>
+                    <div class="mr-text">修改密码</div>
+                </div>
+                <i class="layui-icon layui-icon-right mr-arrow"></i>
+            </div>
+        </div>
+        <div class="menu-group">
+            <div class="menu-row" onclick="logout()">
+                <div class="mr-left">
+                    <div class="mr-icon" style="background:#F44336;"><i class="layui-icon layui-icon-logout"></i></div>
+                    <div class="mr-text danger-text">退出登录</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://unpkg.com/jquery@3.7.1/dist/jquery.min.js"></script>
+    <script src="https://unpkg.com/layui@2.9.23/dist/layui.js"></script>
+    <script src="api.js"></script>
+    <script>
+        if (!Api.checkLogin()) {}
+
+        layui.use('layer', function() {
+            var layer = layui.layer;
+
+            Api.getUserInfo().then(function(res) {
+                if (res.code === 200) {
+                    var d = res.data;
+                    document.getElementById('realname').textContent = d.realname || d.username || '学员';
+                    document.getElementById('username').textContent = d.username || '-';
+                    document.getElementById('phone').textContent = d.phone || '未填写';
+                    document.getElementById('email').textContent = d.email || '未填写';
+                    document.getElementById('company').textContent = d.company || '在线学员';
+                }
+            });
+        });
+
+        function showEditName() {
+            layui.use('layer', function() {
+                var current = document.getElementById('realname').textContent;
+                layui.layer.prompt({ formType: 0, value: current, title: '请输入真实姓名', placeholder: '请输入真实姓名' }, function(value, index) {
+                    if (!value.trim()) {
+                        layui.layer.msg('姓名不能为空', { icon: 2 });
+                        return;
+                    }
+                    var btn = layui.layer.getChildFrame('.layui-layer-btn', index).find('.layui-layer-btn0');
+                    btn.text('保存中...').prop('disabled', true);
+                    Api.updateUserInfo({ realname: value.trim() }).then(function(res) {
+                        btn.text('保存').prop('disabled', false);
+                        if (res.code === 200) {
+                            layui.layer.close(index);
+                            document.getElementById('realname').textContent = value.trim();
+                            var user = JSON.parse(localStorage.getItem('user_info') || '{}');
+                            user.realname = value.trim();
+                            localStorage.setItem('user_info', JSON.stringify(user));
+                            layui.layer.msg('姓名修改成功', { icon: 1 });
+                        } else {
+                            layui.layer.msg(res.msg || '修改失败', { icon: 2 });
+                        }
+                    }).catch(function() {
+                        btn.text('保存').prop('disabled', false);
+                        layui.layer.msg('网络异常', { icon: 2 });
+                    });
+                });
+            });
+        }
+
+        function showEditPhone() {
+            layui.use('layer', function() {
+                layui.layer.prompt({ formType: 0, title: '请输入手机号', placeholder: '请输入新手机号' }, function(value, index) {
+                    if (!/^1[3-9]\d{9}$/.test(value)) {
+                        layui.layer.msg('请输入正确的手机号', { icon: 2 });
+                        return;
+                    }
+                    var btn = layui.layer.getChildFrame('.layui-layer-btn', index).find('.layui-layer-btn0');
+                    btn.text('保存中...').prop('disabled', true);
+                    Api.updateUserInfo({ phone: value.trim() }).then(function(res) {
+                        btn.text('保存').prop('disabled', false);
+                        if (res.code === 200) {
+                            layui.layer.close(index);
+                            document.getElementById('phone').textContent = value.trim();
+                            layui.layer.msg('手机号修改成功', { icon: 1 });
+                        } else {
+                            layui.layer.msg(res.msg || '修改失败', { icon: 2 });
+                        }
+                    }).catch(function() {
+                        btn.text('保存').prop('disabled', false);
+                        layui.layer.msg('网络异常', { icon: 2 });
+                    });
+                });
+            });
+        }
+
+        function showEditPwd() {
+            layui.use('layer', function() {
+                layui.layer.prompt({ formType: 1, title: '请输入原密码', placeholder: '请输入原密码' }, function(oldPwd, index1) {
+                    layui.layer.close(index1);
+                    setTimeout(function() {
+                        layui.layer.prompt({ formType: 1, title: '请输入新密码', placeholder: '请输入新密码（至少6位）' }, function(newPwd, index2) {
+                            if (newPwd.length < 6) {
+                                layui.layer.msg('新密码至少6位', { icon: 2 });
+                                return;
+                            }
+                            var btn = layui.layer.getChildFrame('.layui-layer-btn', index2).find('.layui-layer-btn0');
+                            btn.text('保存中...').prop('disabled', true);
+                            Api.updatePassword(oldPwd, newPwd).then(function(res) {
+                                btn.text('保存').prop('disabled', false);
+                                if (res.code === 200) {
+                                    layui.layer.close(index2);
+                                    layui.layer.msg('密码修改成功', { icon: 1 });
+                                } else {
+                                    layui.layer.msg(res.msg || '修改失败', { icon: 2 });
+                                }
+                            }).catch(function() {
+                                btn.text('保存').prop('disabled', false);
+                                layui.layer.msg('网络异常', { icon: 2 });
+                            });
+                        });
+                    }, 100);
+                });
+            });
+        }
+
+        function logout() {
+            layui.use('layer', function() {
+                layui.layer.confirm('确定要退出登录吗？', function() {
+                    Api.logout();
+                    location.href = 'login.html';
+                });
+            });
+        }
+    </script>
+</body>
+</html>

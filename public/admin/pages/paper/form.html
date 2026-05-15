@@ -1,0 +1,332 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <title>试卷表单</title>
+  <link rel="stylesheet" href="../../vendor/layui/layui.css">
+  <link rel="stylesheet" href="../../css/admin.css">
+  <style>body { padding: 20px; background: #fff; }</style>
+</head>
+<body class="admin-embedded-page">
+<div class="admin-form-shell">
+<form class="layui-form" lay-filter="mainForm" style="max-width:700px;">
+  <div class="layui-form-item">
+    <label class="layui-form-label">试卷标题</label>
+    <div class="layui-input-block">
+      <input type="text" name="title" class="layui-input" lay-verify="required" placeholder="请输入试卷标题">
+    </div>
+  </div>
+  <div class="layui-form-item">
+    <label class="layui-form-label">试卷类型</label>
+    <div class="layui-input-block">
+      <input type="radio" name="type" value="1" title="固定试卷" checked lay-filter="paperType">
+      <input type="radio" name="type" value="2" title="随机试卷" lay-filter="paperType">
+    </div>
+  </div>
+  <div class="layui-form-item">
+    <label class="layui-form-label">总分</label>
+    <div class="layui-input-block">
+      <input type="number" name="total_score" value="100" class="layui-input" style="width:200px;" lay-verify="required|number" min="1">
+    </div>
+  </div>
+  <div class="layui-form-item">
+    <label class="layui-form-label">及格分</label>
+    <div class="layui-input-block">
+      <input type="number" name="pass_score" value="60" class="layui-input" style="width:200px;" lay-verify="required|number" min="1">
+    </div>
+  </div>
+  <div class="layui-form-item">
+    <label class="layui-form-label">时长(分钟)</label>
+    <div class="layui-input-block">
+      <input type="number" name="duration" value="60" class="layui-input" style="width:200px;" lay-verify="required|number" min="1">
+    </div>
+  </div>
+  <div class="layui-form-item">
+    <label class="layui-form-label">题目数量</label>
+    <div class="layui-input-block">
+      <input type="number" name="question_count" value="0" class="layui-input" style="width:200px;" min="0">
+    </div>
+  </div>
+
+  <div id="fixedSection">
+    <div class="layui-form-item">
+      <label class="layui-form-label">固定题目</label>
+      <div class="layui-input-block">
+        <div id="selectedQuestions" style="border:1px solid #e6e6e6;padding:10px;min-height:60px;border-radius:4px;background:#fafafa;"></div>
+        <button type="button" class="layui-btn layui-btn-xs" id="btnSelectQuestions" style="margin-top:5px;"><i class="layui-icon layui-icon-add-1"></i> 选择题目</button>
+      </div>
+    </div>
+  </div>
+
+  <div id="randomSection" style="display:none;">
+    <div class="layui-form-item">
+      <label class="layui-form-label">随机抽题</label>
+      <div class="layui-input-block">
+        <div id="randomRules" style="border:1px solid #e6e6e6;padding:10px;min-height:40px;border-radius:4px;background:#fafafa;"></div>
+        <button type="button" class="layui-btn layui-btn-xs" id="btnAddRule" style="margin-top:5px;"><i class="layui-icon layui-icon-add-1"></i> 添加抽题规则</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="layui-form-item">
+    <label class="layui-form-label">状态</label>
+    <div class="layui-input-block">
+      <input type="checkbox" name="status" value="1" lay-skin="switch" lay-text="启用|禁用" checked>
+    </div>
+  </div>
+  <div class="layui-form-item">
+    <div class="layui-input-block">
+      <button class="layui-btn" lay-submit lay-filter="submitBtn">保存</button>
+      <button type="button" class="layui-btn layui-btn-primary" id="btnCancel">取消</button>
+    </div>
+  </div>
+</form>
+</div>
+<script src="../../vendor/jquery/jquery.min.js"></script>
+<script src="../../vendor/layui/layui.js"></script>
+<script>
+(function() {
+  var BASE_API = '../../';
+  var id = null;
+  var paperType = 1;
+  var selectedQuestions = [];
+  var randomRules = [];
+
+  function getQueryParam(name) {
+    var reg = new RegExp("(^|&)" + name + "=([^&]*)(&|$)", "i");
+    var r = window.location.search.substr(1).match(reg);
+    if (r != null) return decodeURIComponent(r[2]);
+    return null;
+  }
+
+  function getToken() {
+    return localStorage.getItem('admin_token') || '';
+  }
+
+  function ajax(opts) {
+    return $.ajax({
+      url: opts.url,
+      type: opts.type || 'GET',
+      data: opts.data || {},
+      dataType: 'json',
+      beforeSend: function(xhr) {
+        var t = getToken();
+        if (t) xhr.setRequestHeader('Admin-Token', t);
+      },
+      success: function(res) {
+        if (res.code === 401) {
+          localStorage.removeItem('admin_token');
+          localStorage.removeItem('admin_user');
+          parent.location.href = 'login.html';
+          return;
+        }
+        opts.success && opts.success(res);
+      },
+      error: function() {
+        layer.msg('请求失败', { icon: 2 });
+        opts.error && opts.error();
+      }
+    });
+  }
+
+  function renderSelectedQuestions() {
+    var el = document.getElementById('selectedQuestions');
+    if (selectedQuestions.length === 0) {
+      el.innerHTML = '<span style="color:#999;">暂未选择题目</span>';
+      return;
+    }
+    var html = '<table class="layui-table" style="margin:0;font-size:13px;"><thead><tr><th>序号</th><th>题干</th><th>类型</th><th>操作</th></tr></thead><tbody>';
+    selectedQuestions.forEach(function(q, idx) {
+      var typeMap = { 1: '单选', 2: '多选', 3: '填空', 4: '判断', 5: '问答', single: '单选', multi: '多选', fill: '填空', judge: '判断', essay: '问答' };
+      html += '<tr>' +
+        '<td>' + (idx + 1) + '</td>' +
+        '<td style="max-width:200px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;" title="' + (q.stem || '') + '">' + (q.stem || '') + '</td>' +
+        '<td>' + (typeMap[q.type] || q.type) + '</td>' +
+        '<td><a href="javascript:void(0);" class="removeQ" data-idx="' + idx + '" style="color:red;">移除</a></td>' +
+        '</tr>';
+    });
+    html += '</tbody></table>';
+    el.innerHTML = html;
+    el.querySelectorAll('.removeQ').forEach(function(a) {
+      a.addEventListener('click', function() {
+        var idx = parseInt(this.getAttribute('data-idx'));
+        selectedQuestions.splice(idx, 1);
+        renderSelectedQuestions();
+      });
+    });
+    $('input[name="question_count"]').val(selectedQuestions.length);
+  }
+
+  function renderRandomRules() {
+    var el = document.getElementById('randomRules');
+    var typeMap = { 1: '单选题', 2: '多选题', 3: '填空题', 4: '判断题', 5: '问答题' };
+    if (randomRules.length === 0) {
+      el.innerHTML = '<span style="color:#999;">暂未添加抽题规则</span>';
+      return;
+    }
+    var html = '<table class="layui-table" style="margin:0;font-size:13px;"><thead><tr><th>分类</th><th>题型</th><th>数量</th><th>操作</th></tr></thead><tbody>';
+    randomRules.forEach(function(r, idx) {
+      html += '<tr>' +
+        '<td>' + (r.category_name || r.category_id || '全部分类') + '</td>' +
+        '<td>' + (typeMap[r.type] || r.type || '单选题') + '</td>' +
+        '<td>' + (r.quantity || r.count || 0) + '</td>' +
+        '<td><a href="javascript:void(0);" class="removeR" data-idx="' + idx + '" style="color:red;">移除</a></td>' +
+        '</tr>';
+    });
+    html += '</tbody></table>';
+    el.innerHTML = html;
+    el.querySelectorAll('.removeR').forEach(function(a) {
+      a.addEventListener('click', function() {
+        var idx = parseInt(this.getAttribute('data-idx'));
+        randomRules.splice(idx, 1);
+        renderRandomRules();
+      });
+    });
+    var totalCount = randomRules.reduce(function(s, r) { return s + (parseInt(r.quantity || r.count) || 0); }, 0);
+    $('input[name="question_count"]').val(totalCount);
+  }
+
+  layui.use(['form', 'layer'], function() {
+    var form = layui.form;
+    var layer = layui.layer;
+
+    id = getQueryParam('id');
+
+    form.on('radio(paperType)', function(data) {
+      paperType = parseInt(data.value, 10) || 1;
+      if (paperType === 1) {
+        document.getElementById('fixedSection').style.display = '';
+        document.getElementById('randomSection').style.display = 'none';
+      } else {
+        document.getElementById('fixedSection').style.display = 'none';
+        document.getElementById('randomSection').style.display = '';
+      }
+    });
+
+    $('#btnSelectQuestions').on('click', function() {
+      layer.open({
+        type: 2,
+        title: '选择题目',
+        area: ['900px', '600px'],
+        content: 'select_question.html',
+        btn: ['确定', '取消'],
+        yes: function(index, layero) {
+          var frame = layero.find('iframe')[0].contentWindow;
+          var selected = frame.getSelectedQuestions ? frame.getSelectedQuestions() : [];
+          selectedQuestions = selected;
+          renderSelectedQuestions();
+          layer.close(index);
+        }
+      });
+    });
+
+    $('#btnAddRule').on('click', function() {
+      layer.prompt({ title: '输入题型（1单选 / 2多选 / 3填空 / 4判断 / 5问答）', formType: 0, value: '1' }, function(typeValue, typeIndex) {
+        layer.close(typeIndex);
+        layer.prompt({ title: '输入抽题数量', formType: 0, value: '5' }, function(quantityValue, quantityIndex) {
+          layer.close(quantityIndex);
+          layer.prompt({ title: '输入分类ID（或留空从全部分类抽取）', formType: 0 }, function(catValue, catIndex) {
+            layer.close(catIndex);
+            randomRules.push({
+              type: parseInt(typeValue, 10) || 1,
+              quantity: parseInt(quantityValue, 10) || 5,
+              category_id: catValue || '',
+              category_name: catValue || '全部分类'
+            });
+            renderRandomRules();
+          });
+        });
+      });
+    });
+
+    if (id) {
+      ajax({
+        url: BASE_API + 'paper/' + id,
+        success: function(res) {
+          if (res.code === 200) {
+            var payload = res.data || {};
+            var d = payload.paper || payload;
+            var questions = payload.questions || d.questions || [];
+            form.val('mainForm', {
+              'title': d.title,
+              'type': String(d.type || 1),
+              'total_score': d.total_score,
+              'pass_score': d.pass_score,
+              'duration': d.duration,
+              'question_count': d.question_count,
+              'status': d.status == 1
+            });
+            paperType = parseInt(d.type, 10) || 1;
+            if (paperType === 1) {
+              document.getElementById('fixedSection').style.display = '';
+              document.getElementById('randomSection').style.display = 'none';
+            } else {
+              document.getElementById('fixedSection').style.display = 'none';
+              document.getElementById('randomSection').style.display = '';
+            }
+            $('input[name="type"][value="' + paperType + '"]').prop('checked', true);
+            form.render('radio');
+
+            if (questions.length) {
+              selectedQuestions = questions;
+              renderSelectedQuestions();
+            }
+            if (d.question_rules || d.random_rules) {
+              try {
+                var rules = d.question_rules || d.random_rules;
+                randomRules = typeof rules === 'string' ? JSON.parse(rules) : rules;
+                renderRandomRules();
+              } catch(e) {}
+            }
+          }
+        }
+      });
+    }
+
+    $('#btnCancel').on('click', function() {
+      parent.layer.close(parent.layer.getFrameIndex(window.name));
+    });
+
+    form.on('submit(submitBtn)', function(formData) {
+      var data = formData.field;
+      data.type = paperType;
+      data.status = (data.status === 'on' || data.status === '1') ? 1 : 0;
+
+      if (paperType === 1) {
+        data.question_ids = selectedQuestions.map(function(q) { return q.id || q; }).join(',');
+      } else {
+        data.question_rules = JSON.stringify(randomRules.map(function(rule) {
+          return {
+            category_id: rule.category_id || 0,
+            type: parseInt(rule.type, 10) || 1,
+            quantity: parseInt(rule.quantity || rule.count, 10) || 0,
+            difficulty: rule.difficulty ? parseInt(rule.difficulty, 10) : null
+          };
+        }));
+      }
+
+      var url = id ? BASE_API + 'paper/' + id : BASE_API + 'paper';
+      var type = id ? 'PUT' : 'POST';
+
+      ajax({
+        url: url,
+        type: type,
+        data: data,
+        success: function(res) {
+          if (res.code === 200) {
+            parent.showSuccess ? parent.showSuccess(id ? '更新成功' : '添加成功') : layer.msg(id ? '更新成功' : '添加成功', { icon: 1 });
+            parent.layer.close(parent.layer.getFrameIndex(window.name));
+            if (parent.refreshTable) parent.refreshTable();
+          } else {
+            if (parent.showError) parent.showError(res.msg);
+            else layer.msg(res.msg, { icon: 2 });
+          }
+        }
+      });
+      return false;
+    });
+  });
+})();
+</script>
+</body>
+</html>

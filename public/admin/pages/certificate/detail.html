@@ -1,0 +1,223 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <title>证书详情</title>
+  <link rel="stylesheet" href="../../vendor/layui/layui.css">
+  <style>
+    body { padding: 20px; background: #fff; }
+    .detail-section { margin-bottom: 25px; }
+    .detail-title { font-size: 16px; font-weight: bold; border-bottom: 2px solid #009688; padding-bottom: 8px; margin-bottom: 15px; }
+    .detail-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; }
+    .detail-item { display: flex; line-height: 1.8; }
+    .detail-label { font-weight: bold; color: #666; width: 100px; flex-shrink: 0; }
+    .detail-value { color: #333; }
+    .status-badge { display: inline-block; padding: 2px 10px; border-radius: 3px; font-size: 13px; }
+    .status-active { background: #52c41a; color: #fff; }
+    .status-revoked { background: #999; color: #fff; }
+    .info-card { background: #f5f5f5; padding: 15px; border-radius: 4px; }
+    .certificate-display { text-align: center; border: 2px solid #009688; padding: 30px; margin: 20px 0; border-radius: 8px; background: linear-gradient(135deg, #f0f9eb 0%, #ecf5ff 100%); }
+    .cert-title { font-size: 24px; font-weight: bold; color: #009688; margin-bottom: 20px; }
+    .cert-name { font-size: 28px; font-weight: bold; color: #333; margin: 15px 0; }
+    .cert-subtitle { color: #666; font-size: 14px; margin: 5px 0; }
+    .cert-seal { width: 80px; height: 80px; border: 2px solid #d32f2f; border-radius: 50%; display: inline-flex; align-items: center; justify-content: center; color: #d32f2f; font-weight: bold; font-size: 12px; margin-top: 15px; }
+  </style>
+</head>
+<body>
+<div id="detailContent">
+  <div class="certificate-display" id="certDisplay">
+    <div class="cert-title">培训合格证书</div>
+    <div class="cert-subtitle">兹证明</div>
+    <div class="cert-name" id="certRealname">-</div>
+    <div class="cert-subtitle">已完成培训并通过考试</div>
+    <div class="cert-subtitle" style="margin-top:15px;">试卷：<span id="certPaper">-</span></div>
+    <div class="cert-subtitle">成绩：<span id="certScore">-</span> 分</div>
+    <div class="cert-subtitle">证书编号：<span id="certNo">-</span></div>
+    <div class="cert-subtitle" style="margin-top:10px;">发放日期：<span id="certDate">-</span></div>
+    <div class="cert-seal">官方认证</div>
+  </div>
+
+  <div class="detail-section">
+    <div class="detail-title">基本信息</div>
+    <div class="info-card">
+      <div class="detail-grid">
+        <div class="detail-item"><span class="detail-label">证书编号：</span><span class="detail-value" id="cert_no"></span></div>
+        <div class="detail-item"><span class="detail-label">状态：</span><span class="detail-value" id="cert_status"></span></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="detail-section">
+    <div class="detail-title">学员信息</div>
+    <div class="info-card">
+      <div class="detail-grid">
+        <div class="detail-item"><span class="detail-label">姓名：</span><span class="detail-value" id="realname"></span></div>
+        <div class="detail-item"><span class="detail-label">用户名：</span><span class="detail-value" id="username"></span></div>
+        <div class="detail-item"><span class="detail-label">手机号：</span><span class="detail-value" id="phone"></span></div>
+        <div class="detail-item"><span class="detail-label">部门：</span><span class="detail-value" id="department"></span></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="detail-section">
+    <div class="detail-title">考试信息</div>
+    <div class="info-card">
+      <div class="detail-grid">
+        <div class="detail-item"><span class="detail-label">试卷名称：</span><span class="detail-value" id="paper_title"></span></div>
+        <div class="detail-item"><span class="detail-label">考试时间：</span><span class="detail-value" id="exam_time"></span></div>
+        <div class="detail-item"><span class="detail-label">得分：</span><span class="detail-value" id="score"></span></div>
+        <div class="detail-item"><span class="detail-label">总分：</span><span class="detail-value" id="total_score"></span></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="detail-section">
+    <div class="detail-title">证书信息</div>
+    <div class="info-card">
+      <div class="detail-grid">
+        <div class="detail-item"><span class="detail-label">发放时间：</span><span class="detail-value" id="issued_at"></span></div>
+        <div class="detail-item"><span class="detail-label">撤销时间：</span><span class="detail-value" id="revoked_at"></span></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="detail-section">
+    <div class="detail-title">操作</div>
+    <div class="layui-form" style="padding:10px 0;">
+      <button class="layui-btn layui-btn-danger" id="btnRevoke">撤销证书</button>
+      <button class="layui-btn layui-btn-primary" id="btnBack">返回</button>
+    </div>
+  </div>
+</div>
+<script src="../../vendor/jquery/jquery.min.js"></script>
+<script src="../../vendor/layui/layui.js"></script>
+<script>
+(function() {
+  var BASE_API = '../../';
+  var certId = null;
+  var certData = null;
+
+  function getQueryParam(name) {
+    var reg = new RegExp("(^|&)" + name + "=([^&]*)(&|$)", "i");
+    var r = window.location.search.substr(1).match(reg);
+    if (r != null) return decodeURIComponent(r[2]);
+    return null;
+  }
+
+  function getToken() {
+    return localStorage.getItem('admin_token') || '';
+  }
+
+  function ajax(opts) {
+    return $.ajax({
+      url: opts.url,
+      type: opts.type || 'GET',
+      data: opts.data || {},
+      dataType: 'json',
+      beforeSend: function(xhr) {
+        var t = getToken();
+        if (t) xhr.setRequestHeader('Admin-Token', t);
+      },
+      success: function(res) {
+        if (res.code === 401) {
+          localStorage.removeItem('admin_token');
+          localStorage.removeItem('admin_user');
+          parent.location.href = 'login.html';
+          return;
+        }
+        opts.success && opts.success(res);
+      },
+      error: function() {
+        layer.msg('请求失败', { icon: 2 });
+        opts.error && opts.error();
+      }
+    });
+  }
+
+  layui.use(['layer'], function() {
+    var layer = layui.layer;
+
+    certId = getQueryParam('id');
+
+    if (!certId) {
+      layer.msg('缺少证书ID', { icon: 2 });
+      return;
+    }
+
+    ajax({
+      url: BASE_API + 'certificate/' + certId,
+      success: function(res) {
+        if (res.code === 200) {
+          certData = res.data;
+          var d = res.data;
+
+          document.getElementById('cert_no').textContent = d.cert_no || d.certificate_no || '-';
+          document.getElementById('certRealname').textContent = d.realname || '-';
+          document.getElementById('certPaper').textContent = d.paper_title || '-';
+          document.getElementById('certScore').textContent = d.score !== undefined ? d.score : '-';
+          document.getElementById('certNo').textContent = d.cert_no || d.certificate_no || '-';
+          document.getElementById('certDate').textContent = d.issued_at || d.created_at || '-';
+
+          document.getElementById('cert_no').textContent = d.cert_no || d.certificate_no || '-';
+          document.getElementById('realname').textContent = d.realname || '-';
+          document.getElementById('username').textContent = d.username || '-';
+          document.getElementById('phone').textContent = d.phone || '-';
+          document.getElementById('department').textContent = d.department || '-';
+          document.getElementById('paper_title').textContent = d.paper_title || '-';
+          document.getElementById('exam_time').textContent = d.exam_time || '-';
+          document.getElementById('score').textContent = d.score !== undefined ? d.score : '-';
+          document.getElementById('total_score').textContent = d.total_score || '-';
+          document.getElementById('issued_at').textContent = d.issued_at || d.created_at || '-';
+          document.getElementById('revoked_at').textContent = d.revoked_at || '-';
+
+          var statusEl = document.getElementById('cert_status');
+          if (d.status == 1 || d.status === 'active') {
+            statusEl.innerHTML = '<span class="status-badge status-active">有效</span>';
+          } else {
+            statusEl.innerHTML = '<span class="status-badge status-revoked">已撤销</span>';
+          }
+
+          var isActive = d.status == 1 || d.status === 'active';
+          var btnRevoke = document.getElementById('btnRevoke');
+          if (isActive) {
+            btnRevoke.style.display = '';
+          } else {
+            btnRevoke.style.display = 'none';
+          }
+        } else {
+          layer.msg(res.msg || '加载失败', { icon: 2 });
+        }
+      }
+    });
+
+    $('#btnRevoke').on('click', function() {
+      layer.confirm('确定要撤销此证书吗？撤销后不可恢复。', { icon: 3, title: '确认撤销' }, function(index) {
+        ajax({
+          url: BASE_API + 'certificate/' + certId + '/revoke',
+          type: 'POST',
+          success: function(res) {
+            if (res.code === 200) {
+              layer.msg('撤销成功', { icon: 1 });
+              document.getElementById('cert_status').innerHTML = '<span class="status-badge status-revoked">已撤销</span>';
+              document.getElementById('revoked_at').textContent = new Date().toLocaleString();
+              document.getElementById('btnRevoke').style.display = 'none';
+              if (parent.refreshTable) parent.refreshTable();
+            } else {
+              layer.msg(res.msg || '撤销失败', { icon: 2 });
+            }
+          }
+        });
+        layer.close(index);
+      });
+    });
+
+    $('#btnBack').on('click', function() {
+      if (parent.layer) {
+        parent.layer.close(parent.layer.getFrameIndex(window.name));
+      }
+    });
+  });
+})();
+</script>
+</body>
+</html>

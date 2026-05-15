@@ -1,0 +1,33 @@
+<?php
+return [
+    'default' => 'mysql',
+    'connections' => [
+        'mysql' => [
+            'type' => 'mysql',
+            'hostname' => '127.0.0.1',
+            'database' => 'peixun_db',
+            'username' => 'root',
+            'password' => '',
+            'hostport' => '3307',
+            'params' => [],
+            'charset' => 'utf8mb4',
+            'collation' => 'utf8mb4_unicode_ci',
+            'prefix' => '',
+            'deploy' => 0,
+            'rw_separate' => false,
+            'master_num' => 1,
+            'slave_no' => '',
+            'fields_strict' => true,
+            'break_reconnect' => false,
+            'trigger_sql' => true,
+            'fields_cache' => false,
+            'break_match_str' => [],
+            'resultset_type' => 'collection',
+            'resultset_handlers' => [],
+            'default_cursor' => 'cursor',
+            'auto_timestamp' => false,
+            'datetime_format' => 'Y-m-d H:i:s',
+            'sql_explain' => false,
+        ],
+    ],
+];

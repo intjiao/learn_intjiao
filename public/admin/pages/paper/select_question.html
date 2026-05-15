@@ -1,0 +1,226 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <title>选择题目</title>
+  <link rel="stylesheet" href="../../vendor/layui/layui.css">
+  <style>
+    body { padding: 10px; background: #fff; }
+    .search-bar { margin-bottom: 10px; }
+    .selected-bar { margin-bottom: 10px; background: #f2f2f2; padding: 8px 10px; border-radius: 4px; font-size: 13px; }
+    .selected-tag { display: inline-block; background: #009688; color: #fff; padding: 2px 8px; border-radius: 3px; margin: 2px; font-size: 12px; cursor: pointer; }
+  </style>
+</head>
+<body>
+<div class="search-bar">
+  <div class="layui-form layui-inline">
+    <select name="type" id="selType" lay-search style="width:120px;">
+      <option value="">全部类型</option>
+      <option value="single">单选题</option>
+      <option value="multi">多选题</option>
+      <option value="fill">填空题</option>
+      <option value="judge">判断题</option>
+      <option value="essay">问答题</option>
+    </select>
+  </div>
+  <div class="layui-form layui-inline">
+    <select name="category_id" id="selCategory" lay-search style="width:150px;">
+      <option value="">全部分类</option>
+    </select>
+  </div>
+  <div class="layui-form layui-inline">
+    <input type="text" name="keyword" id="keyword" class="layui-input" placeholder="搜索题干" style="width:200px;">
+  </div>
+  <button class="layui-btn layui-btn-sm" id="btnSearch"><i class="layui-icon layui-icon-search"></i> 搜索</button>
+</div>
+
+<div class="selected-bar" id="selectedBar" style="display:none;">
+  <strong>已选：</strong>
+  <span id="selectedTags"></span>
+  <span style="margin-left:10px;color:#999;">共 <span id="selectedCount">0</span> 题</span>
+</div>
+
+<table class="layui-table" id="questionTable" lay-filter="questionTable"></table>
+<script type="text/html" id="toolbar">
+  <div class="layui-btn-container">
+  </div>
+</script>
+<script type="text/html" id="typeTpl">
+  {{# var typeMap = {1:'单选题',2:'多选题',3:'填空题',4:'判断题',5:'问答题',single:'单选题',multi:'多选题',fill:'填空题',judge:'判断题',essay:'问答题'}; }}
+  {{= typeMap[d.type] || d.type }}
+</script>
+<script type="text/html" id="difficultyTpl">
+  {{# var stars = ''; for(var i=0;i<d.difficulty;i++) stars += '★'; }}
+  <span style="color:#ffb800;">{{= stars }}</span>
+</script>
+<script type="text/html" id="selectTpl">
+  <input type="checkbox" lay-skin="primary" value="{{d.id}}" lay-filter="rowSelect" {{# if(d._selected){ }}checked{{# } }}>
+</script>
+<script src="../../vendor/jquery/jquery.min.js"></script>
+<script src="../../vendor/layui/layui.js"></script>
+<script>
+(function() {
+  var BASE_API = '../../';
+  var selectedIds = new Set();
+  var selectedMap = {};
+
+  function getToken() {
+    return localStorage.getItem('admin_token') || '';
+  }
+
+  function ajax(opts) {
+    return $.ajax({
+      url: opts.url,
+      type: opts.type || 'GET',
+      data: opts.data || {},
+      dataType: 'json',
+      beforeSend: function(xhr) {
+        var t = getToken();
+        if (t) xhr.setRequestHeader('Admin-Token', t);
+      },
+      success: function(res) {
+        if (res.code === 401) {
+          localStorage.removeItem('admin_token');
+          localStorage.removeItem('admin_user');
+          parent.location.href = 'login.html';
+          return;
+        }
+        opts.success && opts.success(res);
+      },
+      error: function() {
+        layer.msg('请求失败', { icon: 2 });
+        opts.error && opts.error();
+      }
+    });
+  }
+
+  function updateSelectedBar() {
+    var bar = document.getElementById('selectedBar');
+    var tags = document.getElementById('selectedTags');
+    var count = document.getElementById('selectedCount');
+
+    if (selectedIds.size === 0) {
+      bar.style.display = 'none';
+      return;
+    }
+
+    bar.style.display = '';
+    var tagHtml = '';
+    selectedIds.forEach(function(id) {
+      var q = selectedMap[id];
+      if (q) {
+        tagHtml += '<span class="selected-tag" data-id="' + id + '">' + (q.stem || '').substring(0, 10) + '... ×</span>';
+      }
+    });
+    tags.innerHTML = tagHtml;
+    count.textContent = selectedIds.size;
+
+    tags.querySelectorAll('.selected-tag').forEach(function(tag) {
+      tag.addEventListener('click', function() {
+        var id = this.getAttribute('data-id');
+        selectedIds.delete(id);
+        delete selectedMap[id];
+        updateSelectedBar();
+        table.reload('questionTableId', { url: BASE_API + 'question/list?page=1&page_size=50' });
+      });
+    });
+  }
+
+  layui.use(['table', 'layer', 'form'], function() {
+    var table = layui.table;
+    var layer = layui.layer;
+    var form = layui.form;
+
+    ajax({
+      url: BASE_API + 'category/tree?type=question',
+      success: function(res) {
+        if (res.code === 200) {
+          buildCategoryOptions(res.data, '');
+          form.render('select');
+        }
+      }
+    });
+
+    function buildCategoryOptions(data, prefix) {
+      var sel = document.getElementById('selCategory');
+      data.forEach(function(item) {
+        var opt = document.createElement('option');
+        opt.value = item.id;
+        opt.textContent = prefix + item.name;
+        sel.appendChild(opt);
+        if (item.children && item.children.length > 0) {
+          buildCategoryOptions(item.children, prefix + '　');
+        }
+      });
+    }
+
+    var tableIns = table.render({
+      elem: '#questionTable',
+      id: 'questionTableId',
+      url: BASE_API + 'question/list?page=1&page_size=50',
+      toolbar: '#toolbar',
+      defaultToolbar: [],
+      page: true,
+      limits: [20, 50, 100],
+      limit: 50,
+      headers: { 'Admin-Token': getToken() },
+      response: { statusCode: 200 },
+      request: { pageName: 'page', limitName: 'limit' },
+      cols: [[
+        { type: 'checkbox', fixed: 'left', templet: '#selectTpl' },
+        { field: 'id', title: 'ID', width: 60 },
+        { field: 'stem', title: '题干', minWidth: 300 },
+        { field: 'type', title: '类型', width: 90, templet: '#typeTpl' },
+        { field: 'difficulty', title: '难度', width: 80, templet: '#difficultyTpl' },
+        { field: 'score', title: '分值', width: 60 },
+        { field: 'category_name', title: '分类', width: 100 }
+      ]]
+    });
+
+    table.on('checkbox(questionTable)', function(obj) {
+      var d = obj.data;
+      if (obj.checked) {
+        selectedIds.add(d.id);
+        selectedMap[d.id] = d;
+      } else {
+        selectedIds.delete(d.id);
+        delete selectedMap[d.id];
+      }
+      updateSelectedBar();
+    });
+
+    table.on('tool(questionTable)', function(obj) {
+      var d = obj.data;
+      if (obj.event === 'select-row') {
+        selectedIds.add(d.id);
+        selectedMap[d.id] = d;
+        updateSelectedBar();
+        table.reload('questionTableId');
+      }
+    });
+
+    $('#btnSearch').on('click', function() {
+      var type = document.getElementById('selType').value;
+      var categoryId = document.getElementById('selCategory').value;
+      var keyword = document.getElementById('keyword').value;
+      var url = BASE_API + 'question/list?page=1&page_size=50';
+      var params = [];
+      if (type) params.push('type=' + type);
+      if (categoryId) params.push('category_id=' + categoryId);
+      if (keyword) params.push('keyword=' + encodeURIComponent(keyword));
+      if (params.length > 0) url += '&' + params.join('&');
+      table.reload('questionTableId', { url: url, page: { curr: 1 } });
+    });
+
+    window.getSelectedQuestions = function() {
+      var result = [];
+      selectedIds.forEach(function(id) {
+        if (selectedMap[id]) result.push(selectedMap[id]);
+      });
+      return result;
+    };
+  });
+})();
+</script>
+</body>
+</html>

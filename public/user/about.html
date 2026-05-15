@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>关于我们 - 在线培训考试系统</title>
+    <link rel="stylesheet" href="https://unpkg.com/layui@2.9.23/dist/css/layui.css">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'PingFang SC', sans-serif; background: #F5F7FA; }
+        .page-header {
+            background: linear-gradient(135deg, #1890FF, #0050B3);
+            padding: 12px 16px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            color: #fff;
+            position: sticky;
+            top: 0;
+            z-index: 10;
+        }
+        .page-header .back-btn { font-size: 18px; cursor: pointer; padding: 4px; }
+        .page-header h1 { font-size: 17px; font-weight: 600; flex: 1; }
+        .about-banner {
+            background: linear-gradient(135deg, #1890FF, #0050B3);
+            padding: 40px 20px;
+            text-align: center;
+            color: #fff;
+        }
+        .about-logo {
+            width: 80px;
+            height: 80px;
+            border-radius: 20px;
+            background: rgba(255,255,255,0.2);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 40px;
+            margin: 0 auto 16px;
+        }
+        .about-name { font-size: 20px; font-weight: 600; margin-bottom: 4px; }
+        .about-version { font-size: 13px; opacity: 0.8; }
+        .about-content { padding: 20px 16px; }
+        .about-card {
+            background: #fff;
+            border-radius: 12px;
+            padding: 16px;
+            margin-bottom: 14px;
+            box-shadow: 0 1px 6px rgba(0,0,0,0.06);
+        }
+        .about-card h4 { font-size: 15px; color: #333; margin-bottom: 8px; font-weight: 600; }
+        .about-card p { font-size: 13px; color: #888; line-height: 1.6; }
+        .about-item { display: flex; align-items: center; gap: 12px; padding: 12px 0; }
+        .about-item + .about-item { border-top: 1px solid #f0f0f0; }
+        .about-item .ai-icon {
+            width: 36px;
+            height: 36px;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 18px;
+            color: #fff;
+            flex-shrink: 0;
+        }
+        .about-item .ai-text { font-size: 14px; color: #333; }
+        .about-item .ai-sub { font-size: 12px; color: #999; margin-top: 2px; }
+    </style>
+</head>
+<body>
+    <div class="page-header">
+        <div class="back-btn" onclick="location.href='index.html'"><i class="layui-icon layui-icon-left"></i></div>
+        <h1>关于我们</h1>
+    </div>
+
+    <div class="about-banner">
+        <div class="about-logo"><i class="layui-icon layui-icon-chart-screen"></i></div>
+        <div class="about-name">在线培训考试系统</div>
+        <div class="about-version">Version 1.0.0</div>
+    </div>
+
+    <div class="about-content">
+        <div class="about-card">
+            <h4>系统简介</h4>
+            <p>本系统是一套功能完善的在线培训考试解决方案，支持课程管理、在线刷题、模拟考试、培训任务、证书发放等核心功能。适用于企业内训、职业技能鉴定、安全生产培训等多种场景。</p>
+        </div>
+
+        <div class="about-card">
+            <h4>主要功能</h4>
+            <div class="about-item">
+                <div class="ai-icon" style="background:#FF6B6B;"><i class="layui-icon layui-icon-survey"></i></div>
+                <div>
+                    <div class="ai-text">在线刷题</div>
+                    <div class="ai-sub">章节练习、随机练习、错题复习</div>
+                </div>
+            </div>
+            <div class="about-item">
+                <div class="ai-icon" style="background:#4ECDC4;"><i class="layui-icon layui-icon-video"></i></div>
+                <div>
+                    <div class="ai-text">课程学习</div>
+                    <div class="ai-sub">视频课程、章节测验、学习进度跟踪</div>
+                </div>
+            </div>
+            <div class="about-item">
+                <div class="ai-icon" style="background:#667eea;"><i class="layui-icon layui-icon-form"></i></div>
+                <div>
+                    <div class="ai-text">在线考试</div>
+                    <div class="ai-sub">模拟考试、限时测试、自动评分</div>
+                </div>
+            </div>
+            <div class="about-item">
+                <div class="ai-icon" style="background:#f1c40f;"><i class="layui-icon layui-icon-theme"></i></div>
+                <div>
+                    <div class="ai-text">证书管理</div>
+                    <div class="ai-sub">培训合格后自动颁发电子证书</div>
+                </div>
+            </div>
+        </div>
+
+        <div class="about-card">
+            <h4>技术支持</h4>
+            <p>如有问题，请联系系统管理员或技术支持团队。</p>
+        </div>
+    </div>
+</body>
+</html>

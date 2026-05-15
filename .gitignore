@@ -1,0 +1,52 @@
+# ===== 环境与敏感配置 =====
+.env
+.env.local
+.env.*.local
+*.pem
+*.key
+*.crt
+*.p12
+session_cookies.txt
+
+# ===== PHP 依赖与构建产物 =====
+/vendor/
+composer.phar
+
+# ===== Node 依赖 =====
+**/node_modules/
+**/package-lock.json
+
+# ===== 运行时数据 =====
+/runtime/
+*.log
+*.cache
+*.pid
+
+# ===== 上传文件（按需保留） =====
+/public/uploads/
+/public/storage/
+
+# ===== 本地工具链（不上传到仓库） =====
+/tools/
+*.zip
+*-local.cmd
+
+# ===== 微信小程序联调与产物 =====
+miniprogram/artifacts/
+miniprogram/.miniprogram/
+project.private.config.json
+
+# ===== 备份与临时目录 =====
+*_backup_*/
+
+# ===== IDE 与系统 =====
+.idea/
+.vscode/
+*.iml
+.DS_Store
+Thumbs.db
+
+# ===== 其他 =====
+*.swp
+*.bak
+*.tmp

@@ -1,0 +1,687 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <title>试题表单</title>
+  <link rel="stylesheet" href="../../vendor/layui/layui.css">
+  <link rel="stylesheet" href="../../css/admin.css">
+  <style>
+    body {
+      padding: 20px;
+      background: #f3f7fd;
+    }
+
+    .question-form-shell {
+      max-width: 960px;
+      margin: 0 auto;
+      padding: 24px;
+      border-radius: 24px;
+      background: rgba(255, 255, 255, 0.82);
+      border: 1px solid rgba(148, 163, 184, 0.18);
+      box-shadow: 0 18px 44px rgba(15, 23, 42, 0.12);
+      backdrop-filter: blur(14px);
+    }
+
+    .question-form-shell .layui-form-item {
+      position: relative;
+      margin-bottom: 18px;
+    }
+
+    .question-form-shell .layui-form-label {
+      width: 104px;
+      padding: 10px 12px 10px 0;
+      box-sizing: border-box;
+      white-space: nowrap;
+      word-break: keep-all;
+    }
+
+    .question-form-shell .layui-input-block {
+      min-height: 44px;
+      margin-left: 120px;
+      overflow: visible;
+    }
+
+    .question-form-shell .layui-form-select {
+      position: relative;
+      z-index: 20;
+    }
+
+    .question-form-shell .layui-form-select.layui-form-selected {
+      z-index: 2400;
+    }
+
+    .question-form-shell .layui-form-select dl {
+      z-index: 2500 !important;
+    }
+
+    .question-type-row .layui-input-block {
+      padding-top: 4px;
+    }
+
+    .question-type-row .layui-form-radio,
+    .question-type-row .layui-form-checkbox {
+      margin-right: 14px;
+    }
+
+    .question-type-row .layui-form-radio > i,
+    .question-type-row .layui-form-checkbox i {
+      font-size: 20px;
+    }
+
+    #optionList {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+
+    .option-row {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 14px 16px;
+      border-radius: 16px;
+      border: 1px solid rgba(148, 163, 184, 0.16);
+      background: rgba(248, 250, 252, 0.92);
+    }
+
+    .option-label {
+      flex: 0 0 42px;
+      text-align: center;
+      font-weight: 700;
+      color: var(--admin-primary);
+      letter-spacing: 0.06em;
+    }
+
+    .option-skin {
+      flex: 0 0 76px;
+      display: flex;
+      justify-content: center;
+    }
+
+    .option-content {
+      flex: 1;
+      min-width: 0;
+    }
+
+    .option-content .layui-input {
+      width: 100%;
+    }
+
+    .option-remove {
+      flex: 0 0 34px;
+      display: flex;
+      justify-content: center;
+    }
+
+    .option-remove a {
+      width: 28px;
+      height: 28px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      border-radius: 999px;
+      background: rgba(239, 68, 68, 0.08);
+      color: #ef4444;
+      font-size: 18px;
+      line-height: 1;
+      text-decoration: none;
+    }
+
+    .option-remove a:hover {
+      background: rgba(239, 68, 68, 0.14);
+    }
+
+    #btnAddOption {
+      margin-top: 10px !important;
+    }
+
+    #singleAnswerItem {
+      z-index: 80;
+    }
+
+    #answerArea .layui-input-block {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 12px;
+      align-items: center;
+      position: relative;
+      z-index: 30;
+    }
+
+    #answerArea .layui-textarea {
+      width: 100%;
+    }
+
+    #singleAnswerItem .layui-select-title input {
+      width: 100%;
+      min-width: 220px;
+    }
+
+    #singleAnswerItem .layui-form-select,
+    #singleAnswerItem .layui-form-select.layui-form-selected {
+      z-index: 90;
+    }
+
+    #singleAnswerItem .layui-form-select dl {
+      z-index: 100 !important;
+    }
+
+    #multiAnswerItem .layui-form-checkbox,
+    #judgeAnswerItem .layui-form-radio {
+      margin-right: 0;
+    }
+
+    .question-form-actions {
+      display: flex;
+      justify-content: flex-end;
+      gap: 12px;
+    }
+  </style>
+</head>
+<body class="admin-embedded-page question-form-page">
+<div class="question-form-shell">
+<form class="layui-form" lay-filter="mainForm" style="max-width:none;">
+  <div class="layui-form-item question-type-row">
+    <label class="layui-form-label">题目类型</label>
+    <div class="layui-input-block">
+      <input type="radio" name="type" value="single" title="单选题" checked lay-filter="typeRadio" lay-skin="primary">
+      <input type="radio" name="type" value="multi" title="多选题" lay-filter="typeRadio" lay-skin="primary">
+      <input type="radio" name="type" value="fill" title="填空题" lay-filter="typeRadio" lay-skin="primary">
+      <input type="radio" name="type" value="judge" title="判断题" lay-filter="typeRadio" lay-skin="primary">
+      <input type="radio" name="type" value="essay" title="问答题" lay-filter="typeRadio" lay-skin="primary">
+    </div>
+  </div>
+  <div class="layui-form-item">
+    <label class="layui-form-label">所属分类</label>
+    <div class="layui-input-block">
+      <select name="category_id" lay-search id="selCategory">
+        <option value="">请选择分类</option>
+      </select>
+    </div>
+  </div>
+  <div class="layui-form-item">
+    <label class="layui-form-label">题干</label>
+    <div class="layui-input-block">
+      <textarea name="stem" class="layui-textarea" placeholder="请输入题干" lay-verify="required"></textarea>
+    </div>
+  </div>
+
+  <div id="optionsArea">
+    <div class="layui-form-item">
+      <label class="layui-form-label">选项</label>
+      <div class="layui-input-block">
+        <div id="optionList"></div>
+        <button type="button" class="layui-btn layui-btn-xs" id="btnAddOption"><i class="layui-icon layui-icon-add-1"></i> 添加选项</button>
+      </div>
+    </div>
+  </div>
+
+  <div id="answerArea">
+    <div class="layui-form-item" id="singleAnswerItem">
+      <label class="layui-form-label">正确答案</label>
+      <div class="layui-input-block">
+        <select name="answer" id="selAnswer">
+          <option value="">请选择正确答案</option>
+          <option value="A">A</option>
+          <option value="B">B</option>
+          <option value="C">C</option>
+          <option value="D">D</option>
+        </select>
+      </div>
+    </div>
+    <div class="layui-form-item" id="multiAnswerItem" style="display:none;">
+      <label class="layui-form-label">正确答案</label>
+      <div class="layui-input-block">
+        <input type="checkbox" name="answer_multi" value="A" title="A" lay-skin="primary">
+        <input type="checkbox" name="answer_multi" value="B" title="B" lay-skin="primary">
+        <input type="checkbox" name="answer_multi" value="C" title="C" lay-skin="primary">
+        <input type="checkbox" name="answer_multi" value="D" title="D" lay-skin="primary">
+      </div>
+    </div>
+    <div class="layui-form-item" id="judgeAnswerItem" style="display:none;">
+      <label class="layui-form-label">正确答案</label>
+      <div class="layui-input-block">
+        <input type="radio" name="answer_judge" value="true" title="正确" checked lay-skin="primary">
+        <input type="radio" name="answer_judge" value="false" title="错误" lay-skin="primary">
+      </div>
+    </div>
+    <div class="layui-form-item" id="fillAnswerItem" style="display:none;">
+      <label class="layui-form-label">正确答案</label>
+      <div class="layui-input-block">
+        <textarea name="answer_fill" class="layui-textarea" placeholder="请输入正确答案（多个答案用|分隔）"></textarea>
+      </div>
+    </div>
+    <div class="layui-form-item" id="essayAnswerItem" style="display:none;">
+      <label class="layui-form-label">参考答案</label>
+      <div class="layui-input-block">
+        <textarea name="answer_essay" class="layui-textarea" placeholder="请输入参考答案"></textarea>
+      </div>
+    </div>
+  </div>
+
+  <div class="layui-form-item">
+    <label class="layui-form-label">难度</label>
+    <div class="layui-input-block">
+      <select name="difficulty">
+        <option value="1">1 - 很简单</option>
+        <option value="2">2 - 简单</option>
+        <option value="3" selected>3 - 一般</option>
+        <option value="4">4 - 困难</option>
+        <option value="5">5 - 很困难</option>
+      </select>
+    </div>
+  </div>
+  <div class="layui-form-item">
+    <label class="layui-form-label">分值</label>
+    <div class="layui-input-block">
+      <input type="number" name="score" value="2" class="layui-input" style="width:200px;" min="1">
+    </div>
+  </div>
+  <div class="layui-form-item">
+    <label class="layui-form-label">答案解析</label>
+    <div class="layui-input-block">
+      <textarea name="analysis" class="layui-textarea" placeholder="请输入答案解析"></textarea>
+    </div>
+  </div>
+  <div class="layui-form-item">
+    <label class="layui-form-label">状态</label>
+    <div class="layui-input-block">
+      <input type="checkbox" name="status" value="1" lay-skin="switch" lay-text="启用|禁用" checked>
+    </div>
+  </div>
+  <div class="layui-form-item">
+    <div class="layui-input-block question-form-actions">
+      <button class="layui-btn" lay-submit lay-filter="submitBtn">保存</button>
+      <button type="button" class="layui-btn layui-btn-primary" id="btnCancel">取消</button>
+    </div>
+  </div>
+</form>
+</div>
+<script src="../../vendor/jquery/jquery.min.js"></script>
+<script src="../../vendor/layui/layui.js"></script>
+<script>
+(function() {
+  var BASE_API = '../../';
+  var id = null;
+  var questionType = 'single';
+
+  function questionTypeFromApi(type) {
+    var map = { '1': 'single', '2': 'multi', '3': 'fill', '4': 'judge', '5': 'essay' };
+    return map[String(type)] || type || 'single';
+  }
+
+  function getQueryParam(name) {
+    var reg = new RegExp("(^|&)" + name + "=([^&]*)(&|$)", "i");
+    var r = window.location.search.substr(1).match(reg);
+    if (r != null) return decodeURIComponent(r[2]);
+    return null;
+  }
+
+  function escapeHtml(str) {
+    if (!str) return '';
+    return String(str)
+      .replace(/&/g, '&amp;')
+      .replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;')
+      .replace(/"/g, '&quot;')
+      .replace(/'/g, '&#39;');
+  }
+
+  function getToken() {
+    return localStorage.getItem('admin_token') || '';
+  }
+
+  function ajax(opts) {
+    return $.ajax({
+      url: opts.url,
+      type: opts.type || 'GET',
+      data: opts.data || {},
+      dataType: 'json',
+      beforeSend: function(xhr) {
+        var t = getToken();
+        if (t) xhr.setRequestHeader('Admin-Token', t);
+      },
+      success: function(res) {
+        if (res.code === 401) {
+          localStorage.removeItem('admin_token');
+          localStorage.removeItem('admin_user');
+          parent.location.href = 'login.html';
+          return;
+        }
+        opts.success && opts.success(res);
+      },
+      error: function() {
+        layer.msg('请求失败', { icon: 2 });
+        opts.error && opts.error();
+      }
+    });
+  }
+
+  layui.use(['form', 'layer'], function() {
+    var form = layui.form;
+    var layer = layui.layer;
+
+    id = getQueryParam('id');
+
+    ajax({
+      url: BASE_API + 'category/tree?type=question',
+      success: function(res) {
+        if (res.code === 200) {
+          buildCategoryOptions(res.data, '');
+          form.render('select');
+        }
+      }
+    });
+
+    function buildCategoryOptions(data, prefix) {
+      var sel = document.getElementById('selCategory');
+      data.forEach(function(item) {
+        var opt = document.createElement('option');
+        opt.value = item.id;
+        opt.textContent = prefix + item.name;
+        sel.appendChild(opt);
+        if (item.children && item.children.length > 0) {
+          buildCategoryOptions(item.children, prefix + '　');
+        }
+      });
+    }
+
+    function buildOptionRows(options, isMulti) {
+      var list = document.getElementById('optionList');
+      list.innerHTML = '';
+      var labels = ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H'];
+      options.forEach(function(opt, idx) {
+        addOptionRow(
+          labels[idx],
+          opt.content || opt.option_text,
+          String(opt.is_correct) === '1' || String(opt.is_answer) === '1',
+          isMulti
+        );
+      });
+      updateAnswerSelect();
+      form.render('radio');
+      form.render('checkbox');
+      form.render('select');
+    }
+
+    function addOptionRow(label, text, isAnswer, isMulti) {
+      var list = document.getElementById('optionList');
+      var div = document.createElement('div');
+      div.className = 'layui-form-item option-row';
+      div.setAttribute('data-label', label);
+
+      var checked = isAnswer ? 'checked' : '';
+      var inputName = isMulti ? ('answer_cb_' + label) : ('answer_r_' + label);
+      var inputId = 'opt_' + label;
+
+      div.innerHTML =
+        '<div class="option-label">' + label + '</div>' +
+        '<div class="option-skin">' +
+          '<input type="' + (isMulti ? 'checkbox' : 'radio') + '" name="' + inputName + '" value="' + label + '" title="" lay-skin="primary" lay-filter="answerOpt" id="' + inputId + '" ' + checked + '>' +
+        '</div>' +
+        '<div class="option-content">' +
+          '<input type="text" name="option_' + label + '" value="' + escapeHtml(text || '') + '" placeholder="选项' + label + '内容" class="layui-input">' +
+        '</div>' +
+        '<div class="option-remove">' +
+          '<a href="javascript:void(0);" class="removeOption" aria-label="删除选项">×</a>' +
+        '</div>';
+
+      list.appendChild(div);
+
+      div.querySelector('.removeOption').addEventListener('click', function() {
+        if (list.children.length > 2) {
+          div.remove();
+          relabelOptions();
+        }
+      });
+
+      form.render('checkbox');
+      form.render('radio');
+    }
+
+    function relabelOptions() {
+      var list = document.getElementById('optionList');
+      var labels = ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H'];
+      Array.from(list.children).forEach(function(div, idx) {
+        var newLabel = labels[idx];
+        div.setAttribute('data-label', newLabel);
+        var labelBox = div.querySelector('.option-label');
+        if (labelBox) {
+          labelBox.textContent = newLabel;
+        }
+        var textInput = div.querySelector('.option-content input[type=text]');
+        if (textInput) {
+          textInput.setAttribute('name', 'option_' + newLabel);
+          textInput.setAttribute('id', 'opt_' + newLabel);
+        }
+        var radios = div.querySelectorAll('.option-skin input[type=radio]');
+        radios.forEach(function(r) { r.setAttribute('name', 'answer_r_' + newLabel); r.setAttribute('value', newLabel); });
+        var checks = div.querySelectorAll('.option-skin input[type=checkbox]');
+        checks.forEach(function(c) { c.setAttribute('name', 'answer_cb_' + newLabel); c.setAttribute('value', newLabel); });
+      });
+      updateAnswerSelect();
+      form.render('radio');
+      form.render('checkbox');
+      form.render('select');
+    }
+
+    function updateAnswerSelect() {
+      var list = document.getElementById('optionList');
+      var sel = document.getElementById('selAnswer');
+      var labels = ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H'];
+      var existingLabels = Array.from(list.children).map(function(div) { return div.getAttribute('data-label'); });
+      var selInner = '<option value="">请选择正确答案</option>';
+      existingLabels.forEach(function(l) {
+        selInner += '<option value="' + l + '">' + l + '</option>';
+      });
+      sel.innerHTML = selInner;
+      form.render('select');
+    }
+
+    function getOptionsData() {
+      var list = document.getElementById('optionList');
+      var options = [];
+      var labels = ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H'];
+      Array.from(list.children).forEach(function(div) {
+        var label = div.getAttribute('data-label');
+        var textInput = div.querySelector('input[type=text]');
+        var text = textInput ? textInput.value : '';
+        var isAnswer = false;
+        if (questionType === 'single') {
+          var radio = div.querySelector('input[type=radio]');
+          if (radio && radio.checked) isAnswer = true;
+        } else if (questionType === 'multi') {
+          var cb = div.querySelector('input[type=checkbox]');
+          if (cb && cb.checked) isAnswer = true;
+        }
+        options.push({ label: label, content: text, is_correct: isAnswer ? 1 : 0 });
+      });
+      return options;
+    }
+
+    function getAnswerValue() {
+      if (questionType === 'single') {
+        return document.querySelector('select[name="answer"]').value;
+      } else if (questionType === 'multi') {
+        var checks = document.querySelectorAll('input[name^="answer_multi"]:checked');
+        return Array.from(checks).map(function(c) { return c.value; }).join(',');
+      } else if (questionType === 'judge') {
+        var r = document.querySelector('input[name="answer_judge"]:checked');
+        return r ? r.value : 'true';
+      } else if (questionType === 'fill') {
+        return document.querySelector('textarea[name="answer_fill"]').value;
+      } else if (questionType === 'essay') {
+        return document.querySelector('textarea[name="answer_essay"]').value;
+      }
+      return '';
+    }
+
+    function showAnswerArea(type) {
+      document.getElementById('singleAnswerItem').style.display = 'none';
+      document.getElementById('multiAnswerItem').style.display = 'none';
+      document.getElementById('judgeAnswerItem').style.display = 'none';
+      document.getElementById('fillAnswerItem').style.display = 'none';
+      document.getElementById('essayAnswerItem').style.display = 'none';
+      document.getElementById('optionsArea').style.display = 'none';
+
+      if (type === 'single' || type === 'multi') {
+        document.getElementById('optionsArea').style.display = '';
+        if (type === 'single') {
+          document.getElementById('singleAnswerItem').style.display = '';
+        } else {
+          document.getElementById('multiAnswerItem').style.display = '';
+        }
+      } else if (type === 'judge') {
+        document.getElementById('judgeAnswerItem').style.display = '';
+      } else if (type === 'fill') {
+        document.getElementById('fillAnswerItem').style.display = '';
+      } else if (type === 'essay') {
+        document.getElementById('essayAnswerItem').style.display = '';
+      }
+    }
+
+    form.on('radio(typeRadio)', function(data) {
+      questionType = data.value;
+      if (questionType === 'single' || questionType === 'multi') {
+        var list = document.getElementById('optionList');
+        if (list.children.length === 0) {
+          addOptionRow('A', '', false, questionType === 'multi');
+          addOptionRow('B', '', false, questionType === 'multi');
+          addOptionRow('C', '', false, questionType === 'multi');
+          addOptionRow('D', '', false, questionType === 'multi');
+        }
+      }
+      showAnswerArea(questionType);
+      form.render('radio');
+      form.render('checkbox');
+      form.render('select');
+    });
+
+    document.getElementById('btnAddOption').addEventListener('click', function() {
+      var list = document.getElementById('optionList');
+      var labels = ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H'];
+      var nextLabel = labels[list.children.length];
+      if (nextLabel) {
+        addOptionRow(nextLabel, '', false, questionType === 'multi');
+        updateAnswerSelect();
+      } else {
+        layer.msg('选项数量已达上限', { icon: 0 });
+      }
+    });
+
+    showAnswerArea('single');
+    addOptionRow('A', '', false, false);
+    addOptionRow('B', '', false, false);
+    addOptionRow('C', '', false, false);
+    addOptionRow('D', '', false, false);
+    form.render('radio');
+
+    if (id) {
+      ajax({
+        url: BASE_API + 'question/' + id,
+        success: function(res) {
+          if (res.code === 200) {
+            var d = res.data;
+            questionType = questionTypeFromApi(d.type);
+            form.val('mainForm', {
+              'type': questionType,
+              'category_id': d.category_id,
+              'stem': d.stem,
+              'difficulty': d.difficulty,
+              'score': d.score,
+              'analysis': d.analysis,
+              'status': d.status == 1
+            });
+
+            if (questionType === 'single' || questionType === 'multi') {
+              if (d.options) {
+                buildOptionRows(d.options, questionType === 'multi');
+              }
+              if (d.answer) {
+                if (questionType === 'multi') {
+                  var ans = d.answer.split(',');
+                  ans.forEach(function(a) {
+                    var cb = document.querySelector('input[name="answer_multi"][value="' + a + '"]');
+                    if (cb) cb.checked = true;
+                  });
+                } else {
+                  form.val('mainForm', { 'answer': d.answer });
+                }
+              }
+            } else if (questionType === 'judge') {
+              var radios = document.querySelectorAll('input[name="answer_judge"]');
+              radios.forEach(function(r) { r.checked = r.value === String(d.answer); });
+            } else if (questionType === 'fill') {
+              document.querySelector('textarea[name="answer_fill"]').value = d.answer || '';
+            } else if (questionType === 'essay') {
+              document.querySelector('textarea[name="answer_essay"]').value = d.answer || '';
+            }
+
+            $('input[name="type"][value="' + questionType + '"]').prop('checked', true);
+            showAnswerArea(questionType);
+            form.render('radio');
+            form.render('checkbox');
+            form.render('select');
+          }
+        }
+      });
+    }
+
+    $('#btnCancel').on('click', function() {
+      parent.layer.close(parent.layer.getFrameIndex(window.name));
+    });
+
+    form.on('submit(submitBtn)', function(formData) {
+      var data = formData.field;
+      var options = getOptionsData();
+
+      var isMulti = questionType === 'multi';
+      options.forEach(function(opt) {
+        delete opt.label;
+      });
+
+      if (questionType === 'single' || questionType === 'multi') {
+        data.options = JSON.stringify(options);
+        if (questionType === 'single') {
+          data.answer = document.querySelector('select[name="answer"]').value;
+        } else {
+          var checks = document.querySelectorAll('input[name^="answer_multi"]:checked');
+          data.answer = Array.from(checks).map(function(c) { return c.value; }).join(',');
+        }
+      } else if (questionType === 'judge') {
+        var r = document.querySelector('input[name="answer_judge"]:checked');
+        data.answer = r ? r.value : 'true';
+      } else if (questionType === 'fill') {
+        data.answer = document.querySelector('textarea[name="answer_fill"]').value;
+      } else if (questionType === 'essay') {
+        data.answer = document.querySelector('textarea[name="answer_essay"]').value;
+      }
+
+      data.type = questionType;
+      data.status = data.status === 'on' || data.status === '1' ? 1 : 0;
+
+      var url = id ? BASE_API + 'question/' + id : BASE_API + 'question';
+      var type = id ? 'PUT' : 'POST';
+
+      ajax({
+        url: url,
+        type: type,
+        data: data,
+        success: function(res) {
+          if (res.code === 200) {
+            parent.showSuccess ? parent.showSuccess(id ? '更新成功' : '添加成功') : layer.msg(id ? '更新成功' : '添加成功', { icon: 1 });
+            if (parent.refreshTable) parent.refreshTable();
+            parent.layer.close(parent.layer.getFrameIndex(window.name));
+          } else {
+            if (parent.showError) parent.showError(res.msg);
+            else layer.msg(res.msg, { icon: 2 });
+          }
+        }
+      });
+      return false;
+    });
+  });
+})();
+</script>
+</body>
+</html>

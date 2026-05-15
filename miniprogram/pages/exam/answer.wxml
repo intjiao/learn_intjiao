@@ -1,0 +1,62 @@
+<!-- miniprogram/pages/exam/answer.wxml -->
+<view class="page">
+  <!-- 顶部信息栏 -->
+  <view class="exam-header">
+    <view class="timer">
+      <text class="timer-icon">&#xe609;</text>
+      <text class="timer-text {{timeLeft < 300 ? 'warning' : ''}}">{{formatTime(timeLeft)}}</text>
+    </view>
+    <view class="progress-info">
+      <text>{{currentIndex + 1}}</text>/<text>{{questions.length}}</text>
+    </view>
+    <view class="submit-btn" bindtap="submitExam">交卷</view>
+  </view>
+
+  <!-- 题目区域 -->
+  <view class="question-area" wx:if="{{questions.length > 0}}">
+    <view class="question-type">
+      {{questions[currentIndex].type === 1 ? '单选题' : questions[currentIndex].type === 2 ? '多选题' : questions[currentIndex].type === 3 ? '填空题' : questions[currentIndex].type === 4 ? '判断题' : '问答题'}}
+    </view>
+    <view class="question-stem">{{questions[currentIndex].stem}}</view>
+
+    <!-- 选择题选项 -->
+    <view class="options" wx:if="{{questions[currentIndex].type === 1 || questions[currentIndex].type === 2}}">
+      <view class="option-item {{(answers[questions[currentIndex].id] === item.label || (answers[questions[currentIndex].id] && answers[questions[currentIndex].id].indexOf(item.label) >= 0)) ? 'selected' : ''}}"
+        wx:for="{{questions[currentIndex].options}}" wx:key="id"
+        bindtap="selectOption"
+        data-question-id="{{questions[currentIndex].id}}"
+        data-label="{{item.label}}"
+        data-type="{{questions[currentIndex].type}}">
+        <view class="option-label">{{item.label}}</view>
+        <view class="option-content">{{item.content}}</view>
+      </view>
+    </view>
+
+    <!-- 判断题选项 -->
+    <view class="options" wx:if="{{questions[currentIndex].type === 4}}">
+      <view class="option-item {{answers[questions[currentIndex].id] === 'A' ? 'selected' : ''}}"
+        bindtap="selectOption" data-question-id="{{questions[currentIndex].id}}" data-label="A" data-type="1">
+        <view class="option-label">A</view>
+        <view class="option-content">正确</view>
+      </view>
+      <view class="option-item {{answers[questions[currentIndex].id] === 'B' ? 'selected' : ''}}"
+        bindtap="selectOption" data-question-id="{{questions[currentIndex].id}}" data-label="B" data-type="1">
+        <view class="option-label">B</view>
+        <view class="option-content">错误</view>
+      </view>
+    </view>
+  </view>
+
+  <!-- 底部导航 -->
+  <view class="exam-footer">
+    <view class="nav-btns">
+      <view class="nav-btn {{currentIndex === 0 ? 'disabled' : ''}}" bindtap="prevQuestion">上一题</view>
+      <view class="nav-btn {{currentIndex === questions.length - 1 ? 'disabled' : ''}}" bindtap="nextQuestion">下一题</view>
+    </view>
+    <view class="question-dots">
+      <view class="dot {{currentIndex === index ? 'active' : ''}} {{answers[questions[index].id] ? 'answered' : ''}}"
+        wx:for="{{questions}}" wx:key="index" bindtap="goToQuestion" data-index="{{index}}">
+      </view>
+    </view>
+  </view>
+</view>

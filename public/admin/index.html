@@ -1,0 +1,685 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>管理后台 - 在线培训考试系统</title>
+    <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='18' fill='%234f46e5'/%3E%3Cpath d='M18 20h28v6H18zm0 12h28v6H18zm0 12h18v6H18z' fill='white'/%3E%3C/svg%3E">
+    <link rel="stylesheet" href="vendor/layui/layui.css">
+    <link rel="stylesheet" href="css/admin.css">
+</head>
+<body class="layui-layout-body">
+    <div class="layui-layout layui-layout-admin admin-layout-shell">
+        <div class="layui-side layui-bg-white">
+            <div class="layui-side-scroll">
+                <div class="admin-sidebar-intro">
+                    <span class="admin-sidebar-badge">2026 Admin Console</span>
+                    <h2>控制中枢</h2>
+                    <p>统一管理学员、课程、题库、考试、证书与培训任务。</p>
+                </div>
+
+                <ul class="layui-nav layui-nav-tree" lay-filter="nav">
+                    <li class="layui-nav-item layui-nav-itemed">
+                        <a href="javascript:;" data-url="pages/dashboard.html" data-id="dashboard" class="nav-tab is-current">
+                            <i class="layui-icon layui-icon-home"></i>
+                            <span>首页看板</span>
+                        </a>
+                    </li>
+                    <li class="layui-nav-item">
+                        <a href="javascript:;">
+                            <i class="layui-icon layui-icon-userfriend"></i>
+                            <span>用户管理</span>
+                        </a>
+                        <dl class="layui-nav-child">
+                            <dd><a href="javascript:;" data-url="pages/user/list.html" data-id="user-list" class="nav-tab">学员管理</a></dd>
+                            <dd><a href="javascript:;" data-url="pages/system/category.html?type=user" data-id="user-group-list" class="nav-tab">用户分组</a></dd>
+                        </dl>
+                    </li>
+                    <li class="layui-nav-item">
+                        <a href="javascript:;">
+                            <i class="layui-icon layui-icon-read"></i>
+                            <span>刷题管理</span>
+                        </a>
+                        <dl class="layui-nav-child">
+                            <dd><a href="javascript:;" data-url="pages/question/list.html" data-id="practice-question-bank" class="nav-tab">练习题库</a></dd>
+                            <dd><a href="javascript:;" data-url="pages/practice/wrong_book.html" data-id="practice-wrong" class="nav-tab">纠错本</a></dd>
+                        </dl>
+                    </li>
+                    <li class="layui-nav-item">
+                        <a href="javascript:;">
+                            <i class="layui-icon layui-icon-video"></i>
+                            <span>课程管理</span>
+                        </a>
+                        <dl class="layui-nav-child">
+                            <dd><a href="javascript:;" data-url="pages/course/list.html" data-id="course-list" class="nav-tab">课程列表</a></dd>
+                        </dl>
+                    </li>
+                    <li class="layui-nav-item">
+                        <a href="javascript:;">
+                            <i class="layui-icon layui-icon-chart"></i>
+                            <span>培训任务</span>
+                        </a>
+                        <dl class="layui-nav-child">
+                            <dd><a href="javascript:;" data-url="pages/task/list.html" data-id="task-list" class="nav-tab">任务列表</a></dd>
+                        </dl>
+                    </li>
+                    <li class="layui-nav-item">
+                        <a href="javascript:;">
+                            <i class="layui-icon layui-icon-read"></i>
+                            <span>知识库</span>
+                        </a>
+                        <dl class="layui-nav-child">
+                            <dd><a href="javascript:;" data-url="pages/knowledge/list.html" data-id="knowledge-list" class="nav-tab">知识列表</a></dd>
+                        </dl>
+                    </li>
+                    <li class="layui-nav-item">
+                        <a href="javascript:;">
+                            <i class="layui-icon layui-icon-chart-screen"></i>
+                            <span>考试记录</span>
+                        </a>
+                        <dl class="layui-nav-child">
+                            <dd><a href="javascript:;" data-url="pages/exam/records.html" data-id="exam-records" class="nav-tab">成绩管理</a></dd>
+                        </dl>
+                    </li>
+                    <li class="layui-nav-item">
+                        <a href="javascript:;">
+                            <i class="layui-icon layui-icon-theme"></i>
+                            <span>证书管理</span>
+                        </a>
+                        <dl class="layui-nav-child">
+                            <dd><a href="javascript:;" data-url="pages/certificate/list.html" data-id="cert-list" class="nav-tab">证书列表</a></dd>
+                        </dl>
+                    </li>
+                    <li class="layui-nav-item">
+                        <a href="javascript:;">
+                            <i class="layui-icon layui-icon-set"></i>
+                            <span>系统设置</span>
+                        </a>
+                        <dl class="layui-nav-child">
+                            <dd><a href="javascript:;" data-url="pages/system/category.html?type=question" data-id="sys-category-question" class="nav-tab">试题分类</a></dd>
+                            <dd><a href="javascript:;" data-url="pages/system/category.html?type=course" data-id="sys-category-course" class="nav-tab">课程分类</a></dd>
+                            <dd><a href="javascript:;" data-url="pages/system/category.html?type=knowledge" data-id="sys-category-knowledge" class="nav-tab">知识分类</a></dd>
+                            <dd><a href="javascript:;" data-url="pages/system/config.html" data-id="sys-config" class="nav-tab">系统配置</a></dd>
+                        </dl>
+                    </li>
+                </ul>
+
+                <div class="admin-sidebar-footer">
+                    <span>稳定 / 高效 / 可视化</span>
+                </div>
+            </div>
+        </div>
+
+        <div class="layui-header">
+            <div class="admin-brand">
+                <div class="admin-brand-mark">
+                    <i class="layui-icon layui-icon-template-1"></i>
+                </div>
+                <div class="admin-brand-copy">
+                    <span class="admin-brand-kicker">Training Platform</span>
+                    <strong>培训考试管理</strong>
+                </div>
+            </div>
+
+            <div class="admin-page-meta">
+                <div class="admin-page-title" id="pageTitle">首页看板</div>
+                <div class="admin-page-subtitle" id="pageSubtitle">统一管理学员、课程、题库、考试与证书流程</div>
+            </div>
+
+            <div class="admin-header-pills">
+                <span class="admin-pill">学员</span>
+                <span class="admin-pill">题库</span>
+                <span class="admin-pill">考试</span>
+            </div>
+
+            <ul class="layui-nav layui-layout-right admin-top-actions">
+                <li class="layui-nav-item admin-user-menu">
+                    <a href="javascript:;" class="admin-user-chip">
+                        <span class="admin-user-avatar">
+                            <i class="layui-icon layui-icon-username"></i>
+                        </span>
+                        <span class="admin-user-copy">
+                            <strong id="adminName">管理员</strong>
+                            <em id="adminRole">系统管理员</em>
+                        </span>
+                    </a>
+                    <dl class="layui-nav-child">
+                        <dd><a href="javascript:;" id="logout">退出登录</a></dd>
+                    </dl>
+                </li>
+            </ul>
+        </div>
+
+        <div class="layui-body">
+            <div class="layui-tab layui-tab-brief" lay-filter="tab" lay-allowClose="true">
+                <ul class="layui-tab-title" id="tabTitle">
+                    <li class="layui-this" lay-id="dashboard">首页看板</li>
+                </ul>
+                <div class="layui-tab-content" id="tabContent">
+                    <div class="layui-tab-item layui-show" id="content-dashboard">
+                        <iframe id="iframe-dashboard" src="pages/dashboard.html" onload="window.applyFrameTheme && window.applyFrameTheme(this)"></iframe>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="layui-footer">© 2026 在线培训考试系统 · 管理后台</div>
+    </div>
+
+    <script src="vendor/jquery/jquery.min.js"></script>
+    <script src="vendor/layui/layui.js"></script>
+    <script>
+    (function () {
+        function getCookie(name) {
+            var match = document.cookie.match(new RegExp('(?:^|; )' + name.replace(/[.*+?^${}()|[\]\\]/g, '\\$&') + '=([^;]*)'));
+            return match ? decodeURIComponent(match[1]) : '';
+        }
+
+        function setCookie(name, value, days) {
+            var maxAge = (days || 7) * 24 * 60 * 60;
+            document.cookie = name + '=' + encodeURIComponent(value) + '; path=/; max-age=' + maxAge + '; SameSite=Lax';
+        }
+
+        function removeCookie(name) {
+            document.cookie = name + '=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT; SameSite=Lax';
+        }
+
+        function getStoredValue(key) {
+            try {
+                var localValue = localStorage.getItem(key);
+                if (localValue !== null && localValue !== undefined && localValue !== '') {
+                    return localValue;
+                }
+            } catch (e) {}
+            return getCookie(key);
+        }
+
+        function setStoredValue(key, value) {
+            try {
+                localStorage.setItem(key, value);
+            } catch (e) {}
+            setCookie(key, value, 7);
+        }
+
+        function removeStoredValue(key) {
+            try {
+                localStorage.removeItem(key);
+            } catch (e) {}
+            removeCookie(key);
+        }
+
+        window.getAdminToken = function () {
+            return getStoredValue('admin_token') || '';
+        };
+
+        window.getAdminUserRaw = function () {
+            return getStoredValue('admin_user') || '';
+        };
+
+        window.setAdminAuth = function (token, userJson) {
+            if (token) {
+                setStoredValue('admin_token', token);
+            }
+            if (userJson) {
+                setStoredValue('admin_user', userJson);
+            }
+        };
+
+        window.clearAdminAuth = function () {
+            removeStoredValue('admin_token');
+            removeStoredValue('admin_user');
+        };
+
+        var adminUser = window.getAdminUserRaw();
+        var adminToken = window.getAdminToken();
+        if (!adminUser || !adminToken) {
+            location.href = 'login.html';
+            return;
+        }
+
+        var adminData;
+        try {
+            adminData = JSON.parse(adminUser);
+        } catch (e) {
+            window.clearAdminAuth();
+            location.href = 'login.html';
+            return;
+        }
+        document.getElementById('adminName').textContent = adminData.realname || adminData.username || '管理员';
+        document.getElementById('adminRole').textContent = Number(adminData.role_id) === 1 ? '超级管理员' : '系统管理员';
+
+        var themeHref = location.origin + '/admin/css/admin.css';
+
+        function ensureFrameRefreshHelpers(frameWindow) {
+            if (!frameWindow || frameWindow === window) return;
+
+            if (typeof frameWindow.refreshPage !== 'function') {
+                frameWindow.refreshPage = function () {
+                    try {
+                        frameWindow.location.reload();
+                        return true;
+                    } catch (e) {
+                        return false;
+                    }
+                };
+            }
+
+            if (typeof frameWindow.refreshTable !== 'function') {
+                frameWindow.refreshTable = function () {
+                    try {
+                        var table = frameWindow.layui && frameWindow.layui.table;
+                        var tableIds = table && table.cache ? Object.keys(table.cache) : [];
+                        var reloaded = false;
+
+                        tableIds.forEach(function (tableId) {
+                            if (!tableId) return;
+                            try {
+                                table.reload(tableId);
+                                reloaded = true;
+                            } catch (e) {}
+                        });
+
+                        if (reloaded) {
+                            return true;
+                        }
+                    } catch (e) {}
+
+                    return frameWindow.refreshPage();
+                };
+            }
+        }
+
+        function syncFrameTheme(iframe) {
+            if (!iframe) return;
+            try {
+                var doc = iframe.contentDocument || (iframe.contentWindow && iframe.contentWindow.document);
+                if (!doc || !doc.head || !doc.body) {
+                    return;
+                }
+                if (!doc.querySelector('link[data-admin-theme="1"]')) {
+                    var link = doc.createElement('link');
+                    link.rel = 'stylesheet';
+                    link.href = themeHref;
+                    link.setAttribute('data-admin-theme', '1');
+                    doc.head.appendChild(link);
+                }
+                doc.body.classList.add('admin-embedded-page');
+                doc.documentElement.classList.add('admin-theme-root');
+                ensureFrameRefreshHelpers(iframe.contentWindow);
+                iframe.setAttribute('data-theme-ready', '1');
+            } catch (e) {}
+        }
+
+        window.applyFrameTheme = function (iframe) {
+            if (!iframe) return;
+            var themed = iframe.getAttribute('data-theme-bound');
+            if (!themed) {
+                iframe.setAttribute('data-theme-bound', '1');
+                iframe.addEventListener('load', function () {
+                    syncFrameTheme(iframe);
+                });
+            }
+            if (iframe.getAttribute('data-theme-ready') === '1') {
+                return;
+            }
+            syncFrameTheme(iframe);
+        };
+
+        function extractTabTitle($tab) {
+            return $tab.clone().children().remove().end().text().trim();
+        }
+
+        layui.use(['element', 'layer', 'table', 'form', 'upload', 'laydate'], function () {
+            var $ = layui.jquery;
+            var element = layui.element;
+            var layer = layui.layer;
+
+            window._adminLayer = layer;
+            window._adminTable = layui.table;
+            window._adminForm = layui.form;
+            window._adminUpload = layui.upload;
+            window._adminLaydate = layui.laydate;
+            window._admin$ = $;
+
+            var activeNavId = '';
+
+            function updatePageMeta(title) {
+                document.getElementById('pageTitle').textContent = title || '工作台';
+            }
+
+            function setActiveNav(id) {
+                if (!id || activeNavId === id) {
+                    return;
+                }
+
+                $('.nav-tab').removeClass('is-current');
+                $('.layui-nav-tree > .layui-nav-item').removeClass('layui-this layui-nav-itemed');
+                $('.layui-nav-tree .layui-nav-child dd').removeClass('layui-this');
+
+                var $current = $('.nav-tab[data-id="' + id + '"]');
+                if (!$current.length) return;
+
+                $current.addClass('is-current');
+                var $dd = $current.parent('dd');
+                if ($dd.length) {
+                    $dd.addClass('layui-this');
+                    $dd.closest('.layui-nav-item').addClass('layui-nav-itemed');
+                } else {
+                    $current.closest('.layui-nav-item').addClass('layui-this');
+                }
+
+                activeNavId = id;
+            }
+
+            function themeLayerFrame(layero) {
+                var iframe = layero.find('iframe')[0];
+                if (iframe) {
+                    window.applyFrameTheme(iframe);
+                }
+            }
+
+            function appendLayerSkin(existingSkin, extraSkin) {
+                return existingSkin ? (existingSkin + ' ' + extraSkin) : extraSkin;
+            }
+
+            function parseLayerPixel(value) {
+                if (typeof value === 'number' && isFinite(value)) {
+                    return value;
+                }
+                if (typeof value !== 'string') {
+                    return NaN;
+                }
+                var trimmed = value.trim();
+                if (/^\d+(\.\d+)?px$/.test(trimmed)) {
+                    return parseFloat(trimmed);
+                }
+                if (/^\d+(\.\d+)?$/.test(trimmed)) {
+                    return parseFloat(trimmed);
+                }
+                return NaN;
+            }
+
+            function normalizeLayerArea(area) {
+                var maxWidth = Math.max(820, window.innerWidth - 88);
+                var maxHeight = Math.max(620, window.innerHeight - 88);
+                var normalizedArea = Array.isArray(area) ? area.slice(0, 2) : [];
+                var width = parseLayerPixel(normalizedArea[0]);
+                var height = parseLayerPixel(normalizedArea[1]);
+
+                if (!isFinite(width)) {
+                    width = Math.min(maxWidth, 1120);
+                } else {
+                    width = width < 820 ? 940 : (width < 960 ? width + 120 : width + 100);
+                    width = Math.min(maxWidth, Math.max(900, width));
+                }
+
+                if (!isFinite(height)) {
+                    height = Math.min(maxHeight, 780);
+                } else {
+                    height = height < 560 ? 700 : (height < 720 ? height + 110 : height + 80);
+                    height = Math.min(maxHeight, Math.max(680, height));
+                }
+
+                return [Math.round(width) + 'px', Math.round(height) + 'px'];
+            }
+
+            var rawLayerOpen = layer.open;
+            layer.open = function (options) {
+                options = options || {};
+                var originalSuccess = options.success;
+                var wrappedOptions = Object.assign({}, options);
+
+                if (wrappedOptions.type === 2) {
+                    wrappedOptions.skin = appendLayerSkin(wrappedOptions.skin, 'admin-layer-shell');
+                    wrappedOptions.area = normalizeLayerArea(wrappedOptions.area);
+                    wrappedOptions.shade = typeof wrappedOptions.shade === 'undefined' ? 0.4 : wrappedOptions.shade;
+                    wrappedOptions.shadeClose = typeof wrappedOptions.shadeClose === 'undefined' ? false : wrappedOptions.shadeClose;
+                    wrappedOptions.maxmin = typeof wrappedOptions.maxmin === 'undefined' ? true : wrappedOptions.maxmin;
+                    wrappedOptions.resize = typeof wrappedOptions.resize === 'undefined' ? true : wrappedOptions.resize;
+                    wrappedOptions.moveOut = typeof wrappedOptions.moveOut === 'undefined' ? false : wrappedOptions.moveOut;
+                }
+
+                wrappedOptions.success = function (layero, index) {
+                    if (wrappedOptions.type === 2) {
+                        setTimeout(function () {
+                            themeLayerFrame(layero);
+                        }, 0);
+                    }
+                    if (typeof originalSuccess === 'function') {
+                        originalSuccess(layero, index);
+                    }
+                };
+                return rawLayerOpen.call(layer, wrappedOptions);
+            };
+
+            function doAjax(url, type, data, callback) {
+                $.ajax({
+                    url: url,
+                    type: type || 'GET',
+                    data: data,
+                    dataType: 'json',
+                    beforeSend: function (xhr) {
+                        var t = window.getAdminToken();
+                        if (t) xhr.setRequestHeader('Admin-Token', t);
+                    },
+                    success: function (res) {
+                        if (res.code === 401) {
+                            window.clearAdminAuth();
+                            layer.msg('登录已过期，请重新登录', { icon: 2 }, function () { location.href = 'login.html'; });
+                            return;
+                        }
+                        callback && callback(res);
+                    },
+                    error: function () {
+                        layer.msg('请求失败，请检查网络', { icon: 2 });
+                    }
+                });
+            }
+            window.ajaxGet = function (u, d, c) { doAjax(u, 'GET', d, c); };
+            window.ajaxPost = function (u, d, c) { doAjax(u, 'POST', d, c); };
+            window.ajaxPut = function (u, d, c) { doAjax(u, 'PUT', d, c); };
+            window.ajaxDelete = function (u, d, c) { doAjax(u, 'DELETE', d, c); };
+
+            window.showSuccess = function (msg, cb) { layer.msg(msg, { icon: 1, shade: 0.3, time: 1500 }, cb); };
+            window.showError = function (msg) { layer.msg(msg, { icon: 2, shade: 0.3, time: 2000 }); };
+            window.showMsg = function (msg, icon, cb) { layer.msg(msg, { icon: icon || 1, shade: 0.3, time: 1500 }, cb); };
+
+            function getActiveTabFrame() {
+                return document.querySelector('.layui-tab-content .layui-tab-item.layui-show iframe');
+            }
+
+            window.refreshTable = function () {
+                var activeFrame = getActiveTabFrame();
+                if (!activeFrame || !activeFrame.contentWindow) {
+                    return false;
+                }
+                var frameWindow = activeFrame.contentWindow;
+                if (typeof frameWindow.refreshTable === 'function') {
+                    return frameWindow.refreshTable();
+                }
+                if (typeof frameWindow.refreshPage === 'function') {
+                    return frameWindow.refreshPage();
+                }
+                try {
+                    frameWindow.location.reload();
+                    return true;
+                } catch (e) {
+                    return false;
+                }
+            };
+
+            window.refreshCurrentTab = window.refreshTable;
+
+            window.openForm = function (title, url, width, height) {
+                width = width || 1040;
+                height = height || 760;
+                return layer.open({
+                    type: 2,
+                    title: title,
+                    area: [width + 'px', height + 'px'],
+                    fix: false,
+                    maxmin: true,
+                    resize: true,
+                    shadeClose: false,
+                    shade: 0.4,
+                    skin: 'admin-layer-shell',
+                    content: url,
+                    zIndex: layer.zIndex
+                });
+            };
+
+            window.ajaxDeleteItem = function (url, id, tableId) {
+                if (!url) return;
+                var msg = id ? '确定删除ID为【' + id + '】的数据吗？' : '确定删除选中的数据吗？';
+                layer.confirm(msg, function (idx) {
+                    $.ajax({
+                        url: url,
+                        type: 'DELETE',
+                        dataType: 'json',
+                        beforeSend: function (xhr) {
+                            var t = window.getAdminToken();
+                            if (t) xhr.setRequestHeader('Admin-Token', t);
+                        },
+                        success: function (res) {
+                            if (res.code === 200) {
+                                showSuccess('删除成功');
+                                if (tableId && layui.table) layui.table.reload(tableId);
+                            } else {
+                                showError(res.msg || '删除失败');
+                            }
+                        },
+                        error: function () { showError('请求失败，请重试'); }
+                    });
+                    layer.close(idx);
+                });
+            };
+
+            window.formatDate = function (date, fmt) {
+                if (!date) return '';
+                fmt = fmt || 'YYYY-MM-DD HH:mm:ss';
+                var d = new Date(date);
+                return fmt.replace('YYYY', d.getFullYear())
+                    .replace('MM', ('0' + (d.getMonth() + 1)).slice(-2))
+                    .replace('DD', ('0' + d.getDate()).slice(-2))
+                    .replace('HH', ('0' + d.getHours()).slice(-2))
+                    .replace('mm', ('0' + d.getMinutes()).slice(-2))
+                    .replace('ss', ('0' + d.getSeconds()).slice(-2));
+            };
+
+            window.getQueryParam = function (name) {
+                var reg = new RegExp('(^|&)' + name + '=([^&]*)(&|$)', 'i');
+                var r = window.location.search.substr(1).match(reg);
+                if (r != null) return decodeURIComponent(r[2]);
+                return null;
+            };
+
+            $.ajaxSetup({
+                beforeSend: function (xhr) {
+                    var t = window.getAdminToken();
+                    if (t) xhr.setRequestHeader('Admin-Token', t);
+                }
+            });
+
+            element.init();
+            window.applyFrameTheme(document.getElementById('iframe-dashboard'));
+
+            var sidebarTree = document.querySelector('.layui-nav-tree');
+            var sidebarItems = Array.prototype.slice.call(document.querySelectorAll('.layui-nav-tree > .layui-nav-item'));
+
+            if (sidebarTree) {
+                sidebarTree.addEventListener('click', function (event) {
+                    var link = event.target.closest('.layui-nav-tree > .layui-nav-item > a');
+                    if (!link) {
+                        return;
+                    }
+
+                    var item = link.parentElement;
+                    var child = null;
+                    for (var i = 0; i < item.children.length; i++) {
+                        if (item.children[i].classList && item.children[i].classList.contains('layui-nav-child')) {
+                            child = item.children[i];
+                            break;
+                        }
+                    }
+
+                    if (!child || link.classList.contains('nav-tab') || link.getAttribute('data-url')) {
+                        return;
+                    }
+
+                    event.preventDefault();
+                    event.stopPropagation();
+                    event.stopImmediatePropagation();
+
+                    var shouldOpen = !item.classList.contains('layui-nav-itemed');
+
+                    sidebarItems.forEach(function (navItem) {
+                        if (navItem !== item) {
+                            navItem.classList.remove('layui-nav-itemed');
+                        }
+                    });
+
+                    item.classList.toggle('layui-nav-itemed', shouldOpen);
+                }, true);
+            }
+
+            $('.nav-tab').on('click', function (event) {
+                event.preventDefault();
+                event.stopPropagation();
+                event.stopImmediatePropagation();
+                var url = $(this).data('url');
+                var id = $(this).data('id');
+                var title = $(this).find('span').last().text() || $(this).text().trim();
+
+                if (!url) return;
+                if ($('.layui-tab-title li.layui-this').attr('lay-id') === id) return;
+
+                if (document.getElementById('iframe-' + id)) {
+                    element.tabChange('tab', id);
+                    return;
+                }
+
+                element.tabAdd('tab', {
+                    title: title,
+                    content: '<iframe id="iframe-' + id + '" src="' + url + '" onload="window.applyFrameTheme && window.applyFrameTheme(this)"></iframe>',
+                    id: id
+                });
+                element.tabChange('tab', id);
+            });
+
+            element.on('tab(tab)', function () {
+                var id = $(this).attr('lay-id');
+                var title = extractTabTitle($(this));
+                updatePageMeta(title);
+                setActiveNav(id);
+
+                var iframe = document.getElementById('iframe-' + id);
+                if (iframe) {
+                    window.applyFrameTheme(iframe);
+                }
+            });
+
+            $('#logout').on('click', function () {
+                layer.confirm('确定要退出登录吗？', function (idx) {
+                    $.ajax({
+                        url: 'logout',
+                        type: 'POST',
+                        beforeSend: function (xhr) {
+                            var t = window.getAdminToken();
+                            if (t) xhr.setRequestHeader('Admin-Token', t);
+                        },
+                        success: function () {
+                            window.clearAdminAuth();
+                            location.href = 'login.html';
+                        }
+                    });
+                    layer.close(idx);
+                });
+            });
+
+            updatePageMeta('首页看板');
+            setActiveNav('dashboard');
+        });
+    })();
+    </script>
+</body>
+</html>

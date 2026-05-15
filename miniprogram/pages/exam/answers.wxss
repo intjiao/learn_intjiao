@@ -1,0 +1,149 @@
+/* miniprogram/pages/exam/answers.wxss */
+.page {
+  min-height: 100vh;
+  background: #f5f7fa;
+  padding: 24rpx;
+}
+
+.hero-card,
+.question-card {
+  background: #fff;
+  border-radius: 20rpx;
+  padding: 28rpx;
+  box-shadow: 0 4rpx 20rpx rgba(0, 0, 0, 0.06);
+  margin-bottom: 24rpx;
+}
+
+.hero-card.pass {
+  background: linear-gradient(135deg, #43A047 0%, #2E7D32 100%);
+  color: #fff;
+}
+
+.hero-card.fail {
+  background: linear-gradient(135deg, #FF7043 0%, #E64A19 100%);
+  color: #fff;
+}
+
+.hero-title {
+  display: block;
+  font-size: 34rpx;
+  font-weight: 700;
+  margin-bottom: 14rpx;
+}
+
+.hero-meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 16rpx 20rpx;
+  font-size: 24rpx;
+  opacity: 0.95;
+}
+
+.section-title {
+  font-size: 30rpx;
+  font-weight: 700;
+  color: #333;
+  margin: 8rpx 4rpx 16rpx;
+}
+
+.question-top {
+  display: flex;
+  justify-content: space-between;
+  gap: 16rpx;
+  align-items: flex-start;
+  margin-bottom: 14rpx;
+}
+
+.question-title {
+  flex: 1;
+  font-size: 30rpx;
+  color: #333;
+  line-height: 1.6;
+}
+
+.question-tag {
+  padding: 6rpx 16rpx;
+  border-radius: 999rpx;
+  font-size: 22rpx;
+  flex-shrink: 0;
+}
+
+.question-tag.right {
+  background: #E8F5E9;
+  color: #43A047;
+}
+
+.question-tag.wrong {
+  background: #FFEBEE;
+  color: #F44336;
+}
+
+.question-meta {
+  display: flex;
+  flex-direction: column;
+  gap: 10rpx;
+  font-size: 24rpx;
+  color: #666;
+  line-height: 1.7;
+}
+
+.option-list {
+  margin-top: 14rpx;
+  padding-top: 14rpx;
+  border-top: 1rpx dashed #eef2f6;
+}
+
+.option-item {
+  display: flex;
+  gap: 10rpx;
+  font-size: 24rpx;
+  color: #666;
+  margin-bottom: 8rpx;
+}
+
+.option-label {
+  font-weight: 600;
+  color: #333;
+}
+
+.analysis {
+  margin-top: 14rpx;
+  padding-top: 14rpx;
+  border-top: 1rpx dashed #eef2f6;
+}
+
+.analysis-title {
+  display: block;
+  font-size: 24rpx;
+  font-weight: 600;
+  color: #333;
+  margin-bottom: 8rpx;
+}
+
+.analysis-text {
+  font-size: 24rpx;
+  color: #666;
+  line-height: 1.7;
+}
+
+.action-group {
+  display: flex;
+  gap: 20rpx;
+  margin-top: 20rpx;
+}
+
+.btn {
+  flex: 1;
+  height: 84rpx;
+  border-radius: 42rpx;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 30rpx;
+  font-weight: 600;
+}
+
+.btn.primary {
+  background: linear-gradient(135deg, #1890FF 0%, #0050B3 100%);
+  color: #fff;
+}

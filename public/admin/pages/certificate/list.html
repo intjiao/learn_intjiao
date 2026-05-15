@@ -1,0 +1,233 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <title>证书管理</title>
+  <link rel="stylesheet" href="../../vendor/layui/layui.css">
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body { background: #f5f7fa; }
+    .search-bar { padding: 14px 16px 0; background: #fff; border-bottom: 1px solid #f0f0f0; }
+    .search-bar .layui-form-item { margin-bottom: 12px; }
+    .search-bar .layui-form-label {
+      width: 78px !important;
+      padding-right: 10px;
+      white-space: nowrap;
+      word-break: keep-all;
+      overflow: visible;
+      text-align: right;
+    }
+    .toolbar { padding: 12px 16px; background: #fff; border-bottom: 1px solid #f0f0f0; }
+    .data-table { background: #fff; }
+    .layui-table-view { border: none; }
+    .layui-table-box { background: #fff; }
+  </style>
+</head>
+<body>
+  <div class="search-bar">
+    <form class="layui-form" lay-filter="searchForm">
+      <div class="layui-form-item" style="margin-bottom: 10px;">
+        <div class="layui-inline">
+          <label class="layui-form-label" style="width: 70px;">关键词</label>
+          <div class="layui-input-inline">
+            <input type="text" name="keyword" placeholder="证书编号/学员" class="layui-input">
+          </div>
+        </div>
+        <div class="layui-inline">
+          <label class="layui-form-label" style="width: 70px;">状态</label>
+          <div class="layui-input-inline">
+            <select name="status">
+              <option value="">全部</option>
+              <option value="1">有效</option>
+              <option value="2">已撤销</option>
+              <option value="3">已过期</option>
+            </select>
+          </div>
+        </div>
+        <div class="layui-inline">
+          <button class="layui-btn layui-btn-normal" lay-submit lay-filter="searchBtn"><i class="layui-icon layui-icon-search"></i> 查询</button>
+          <button type="reset" class="layui-btn layui-btn-primary">重置</button>
+        </div>
+      </div>
+    </form>
+  </div>
+
+  <div class="toolbar">
+    <button class="layui-btn layui-btn-sm layui-btn-warm" id="btnExport"><i class="layui-icon layui-icon-export"></i> 导出</button>
+    <button class="layui-btn layui-btn-sm" id="btnVerify"><i class="layui-icon layui-icon-search"></i> 查看验证</button>
+  </div>
+
+  <div class="data-table">
+    <table id="certTable" lay-filter="certTable"></table>
+  </div>
+
+  <script type="text/html" id="statusTpl">
+    {{# var map = {1:'<span style="color:#43e97b;">有效</span>', 2:'<span style="color:#fa709a;">已撤销</span>', 3:'<span style="color:#999;">已过期</span>'}; }}
+    {{ map[d.status] || d.status }}
+  </script>
+
+  <script type="text/html" id="actionBar">
+    <a class="layui-btn layui-btn-xs" lay-event="detail"><i class="layui-icon layui-icon-about"></i> 详情</a>
+    {{# if(d.status == 1) { }}
+    <a class="layui-btn layui-btn-danger layui-btn-xs" lay-event="revoke"><i class="layui-icon layui-icon-fire"></i> 撤销</a>
+    {{# } }}
+  </script>
+
+  <script src="../../vendor/jquery/jquery.min.js"></script>
+  <script src="../../vendor/layui/layui.js"></script>
+  <script>
+  (function() {
+    var BASE_API = '../../';
+    function apiUrl(path) {
+      return BASE_API + path.replace(/^\/+/, '');
+    }
+    var TABLE_ID = 'certTable';
+
+    function getToken() {
+      return localStorage.getItem('admin_token') || '';
+    }
+
+    function ajax(opts) {
+      return $.ajax({
+        url: opts.url,
+        type: opts.type || 'GET',
+        data: opts.data || {},
+        dataType: 'json',
+        beforeSend: function(xhr) {
+          var t = getToken();
+          if (t) xhr.setRequestHeader('Admin-Token', t);
+        },
+        success: function(res) {
+          if (res.code === 401) {
+            localStorage.removeItem('admin_token');
+            localStorage.removeItem('admin_user');
+            parent.location.href = 'login.html';
+            return;
+          }
+          opts.success && opts.success(res);
+        },
+        error: function() {
+          layer.msg('网络请求失败', { icon: 2 });
+          opts.error && opts.error();
+        }
+      });
+    }
+
+    function showSuccess(msg) { layer.msg(msg, { icon: 1, shade: 0.3, time: 1500 }); }
+    function showError(msg) { layer.msg(msg, { icon: 2, shade: 0.3, time: 2000 }); }
+
+    function openForm(title, url, w, h) {
+      w = w || 600; h = h || 500;
+      parent.layer.open({
+        type: 2,
+        title: title,
+        area: [w + 'px', h + 'px'],
+        fix: false,
+        maxmin: true,
+        shadeClose: false,
+        shade: 0.4,
+        content: url,
+        zIndex: parent.layer.zIndex
+      });
+    }
+
+    function revokeCert(id, reason) {
+      ajax({
+        url: apiUrl('certificate/' + id + '/revoke'),
+        type: 'POST',
+        data: { reason: reason },
+        success: function(res) {
+          if (res.code === 200) {
+            showSuccess('撤销成功');
+            table.reload(TABLE_ID);
+          } else {
+            showError(res.msg);
+          }
+        }
+      });
+    }
+
+    var table;
+
+    layui.use(['table', 'form', 'layer'], function() {
+      table = layui.table;
+      var form = layui.form;
+
+      table.render({
+        elem: '#' + TABLE_ID,
+        url: apiUrl('certificate/list'),
+        page: true,
+        limit: 15,
+        limits: [10, 15, 20, 30, 50],
+        headers: { 'Admin-Token': getToken() },
+        response: { statusCode: 200 },
+        request: { pageName: 'page', limitName: 'limit' },
+        cols: [[
+          { type: 'checkbox', fixed: 'left' },
+          { field: 'id', title: 'ID', width: 80 },
+          { field: 'cert_no', title: '证书编号', width: 200 },
+          { field: 'user_name', title: '学员', width: 100 },
+          { field: 'user_phone', title: '手机号', width: 130 },
+          { field: 'task_title', title: '培训任务', minWidth: 150 },
+          { field: 'paper_title', title: '考试试卷', minWidth: 120 },
+          { field: 'score', title: '得分', width: 80 },
+          { field: 'issue_date', title: '发放时间', width: 180 },
+          { field: 'status', title: '状态', width: 100, toolbar: '#statusTpl' },
+          { fixed: 'right', title: '操作', width: 180, toolbar: '#actionBar' }
+        ]]
+      });
+
+      form.on('submit(searchBtn)', function(data) {
+        table.reload(TABLE_ID, { where: data.field, page: { curr: 1 } });
+        return false;
+      });
+
+      table.on('tool(' + TABLE_ID + ')', function(obj) {
+        var data = obj.data;
+        var event = obj.event;
+        if (event === 'detail') {
+          openForm('证书详情', 'pages/certificate/detail.html?id=' + data.id, 600, 500);
+        } else if (event === 'revoke') {
+          layer.prompt({ title: '请输入撤销原因', formType: 2 }, function(value, index) {
+            revokeCert(data.id, value);
+            layer.close(index);
+          });
+        }
+      });
+
+      $('#btnExport').on('click', function() {
+        var params = $('form[lay-filter=searchForm]').serialize();
+        window.open(apiUrl('certificate/export') + '?' + params);
+      });
+
+      $('#btnVerify').on('click', function() {
+        layer.prompt({ title: '请输入证书编号查询验证', formType: 0 }, function(value, index) {
+          ajax({
+            url: apiUrl('certificate/verify'),
+            data: { cert_no: value },
+            success: function(res) {
+              if (res.code === 200 && res.data) {
+                var d = res.data;
+                var info = '证书编号: ' + d.cert_no + '\n' +
+                           '学员: ' + d.user_name + '\n' +
+                           '培训任务: ' + d.task_title + '\n' +
+                           '状态: ' + (d.status == 1 ? '有效' : d.status == 2 ? '已撤销' : '已过期') + '\n' +
+                           '发放时间: ' + d.issue_date;
+                layer.alert(info, { title: '证书验证结果' });
+              } else {
+                layer.msg('未找到该证书', { icon: 2 });
+              }
+            }
+          });
+          layer.close(index);
+        });
+      });
+
+      window.refreshTable = function() {
+        table.reload(TABLE_ID);
+      };
+    });
+  })();
+  </script>
+</body>
+</html>

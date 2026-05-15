@@ -1,0 +1,64 @@
+<!-- miniprogram/pages/course/detail.wxml -->
+<view class="page" wx:if="{{course}}">
+  <view class="course-header">
+    <image class="cover" src="{{course.cover || '/assets/images/course-default.png'}}" mode="aspectFill"></image>
+    <view class="header-info">
+      <text class="title">{{course.title}}</text>
+      <view class="meta">
+        <text>{{course.teacher || '未知讲师'}}</text>
+        <text>{{course.duration_text || '0:00'}}</text>
+        <text>{{course.student_count || 0}}人学习</text>
+      </view>
+    </view>
+  </view>
+
+  <view class="progress-section" wx:if="{{progress > 0}}">
+    <view class="progress-info">
+      <text>学习进度</text>
+      <text class="progress-text">{{progress}}%</text>
+    </view>
+    <view class="progress-bar">
+      <view class="progress-fill" style="width: {{progress}}%;"></view>
+    </view>
+  </view>
+
+  <view class="section">
+    <view class="section-title">课程介绍</view>
+    <view class="section-content">
+      <text>{{course.description || '暂无介绍'}}</text>
+    </view>
+  </view>
+
+  <view class="section">
+    <view class="section-title">课程章节</view>
+    <view class="chapter-list">
+      <view class="chapter-item" wx:for="{{chapters}}" wx:key="id">
+        <view class="chapter-header">
+          <text class="chapter-title">第{{index + 1}}章 {{item.title}}</text>
+        </view>
+        <view class="resource-list">
+          <view class="resource-item" wx:for="{{item.resources}}" wx:for-item="resource" wx:key="id"
+            bindtap="playVideo" data-resource-id="{{resource.id}}" data-chapter-id="{{item.id}}" data-url="{{resource.file_url}}" data-title="{{resource.title}}" data-type="{{resource.type}}" data-duration="{{resource.duration}}">
+            <view class="resource-icon">
+              <text wx:if="{{resource.type === 'video'}}">&#xe606;</text>
+              <text wx:elif="{{resource.type === 'audio'}}">&#xe607;</text>
+              <text wx:else>&#xe608;</text>
+            </view>
+            <view class="resource-info">
+              <text class="resource-title">{{resource.title}}</text>
+              <text class="resource-duration">{{resource.duration_text || '0:00'}}</text>
+            </view>
+            <view class="resource-status">
+              <text wx:if="{{resource.is_completed}}" class="completed">已学完</text>
+              <text wx:else class="not-start">未学</text>
+            </view>
+          </view>
+        </view>
+      </view>
+    </view>
+  </view>
+
+  <view class="bottom-bar" wx:if="{{!course.is_enrolled}}">
+    <view class="btn-enroll" bindtap="enrollCourse">立即报名</view>
+  </view>
+</view>

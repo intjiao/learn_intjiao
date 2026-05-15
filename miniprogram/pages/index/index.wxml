@@ -1,0 +1,60 @@
+<!-- miniprogram/pages/index/index.wxml -->
+<view class="page">
+  <!-- 用户信息卡片 -->
+  <view class="user-card">
+    <view class="user-info">
+      <image class="avatar" src="{{userInfo.avatar || '/assets/images/avatar.png'}}" mode="aspectFill"></image>
+      <view class="info">
+        <text class="name">{{userInfo.realname || '学员'}}</text>
+        <text class="company">{{userInfo.company || '未填写公司'}}</text>
+      </view>
+    </view>
+    <view class="user-stats">
+      <view class="stat-item">
+        <text class="stat-num">{{stats.courseCount}}</text>
+        <text class="stat-label">在学课程</text>
+      </view>
+      <view class="stat-item">
+        <text class="stat-num">{{stats.examCount}}</text>
+        <text class="stat-label">已完成考试</text>
+      </view>
+      <view class="stat-item">
+        <text class="stat-num">{{stats.certCount}}</text>
+        <text class="stat-label">获得证书</text>
+      </view>
+    </view>
+  </view>
+
+  <!-- 快捷入口 -->
+  <view class="section">
+    <view class="section-header">
+      <text class="section-title">快捷服务</text>
+    </view>
+    <view class="quick-grid">
+      <view class="quick-item" bindtap="goToCourse">
+        <view class="quick-icon" style="background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);">
+          <text>&#xe602;</text>
+        </view>
+        <text class="quick-label">在线学习</text>
+      </view>
+      <view class="quick-item" bindtap="goToExam">
+        <view class="quick-icon" style="background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);">
+          <text>&#xe603;</text>
+        </view>
+        <text class="quick-label">在线考试</text>
+      </view>
+      <view class="quick-item" bindtap="goToCertificate">
+        <view class="quick-icon" style="background: linear-gradient(135deg, #a18cd1 0%, #fbc2eb 100%);">
+          <text>&#xe604;</text>
+        </view>
+        <text class="quick-label">我的证书</text>
+      </view>
+      <view class="quick-item" bindtap="goToCourse">
+        <view class="quick-icon" style="background: linear-gradient(135deg, #43e97b 0%, #38f9d7 100%);">
+          <text>&#xe605;</text>
+        </view>
+        <text class="quick-label">知识库</text>
+      </view>
+    </view>
+  </view>
+</view>

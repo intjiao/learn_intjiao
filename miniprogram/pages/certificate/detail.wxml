@@ -1,0 +1,59 @@
+<!-- miniprogram/pages/certificate/detail.wxml -->
+<view class="page" wx:if="{{certificate}}">
+  <view class="hero-card">
+    <view class="hero-top">
+      <view class="hero-icon">证</view>
+      <view class="hero-info">
+        <text class="hero-title">{{certificate.task_title || '培训证书'}}</text>
+        <text class="hero-sub">{{certificate.user_name || '学员'}} · {{certificate.cert_no || '--'}}</text>
+      </view>
+      <view class="status-tag {{certificate.display_status === 1 ? 'valid' : certificate.display_status === 2 ? 'revoked' : 'expired'}}">
+        {{certificate.display_status === 1 ? '有效' : certificate.display_status === 2 ? '已撤销' : '已过期'}}
+      </view>
+    </view>
+  </view>
+
+  <view class="info-card">
+    <view class="info-row">
+      <text class="label">证书编号</text>
+      <text class="value">{{certificate.cert_no || '--'}}</text>
+    </view>
+    <view class="info-row">
+      <text class="label">颁发日期</text>
+      <text class="value">{{certificate.issue_date || '--'}}</text>
+    </view>
+    <view class="info-row">
+      <text class="label">有效期至</text>
+      <text class="value">{{certificate.expire_date || '永久有效'}}</text>
+    </view>
+    <view class="info-row" wx:if="{{certificate.revoke_reason}}">
+      <text class="label">撤销原因</text>
+      <text class="value">{{certificate.revoke_reason}}</text>
+    </view>
+  </view>
+
+  <view class="action-group">
+    <view class="btn primary" bindtap="verifyCertificate">验证证书</view>
+    <view class="btn secondary" bindtap="copyFilePath">复制文件地址</view>
+  </view>
+
+  <view class="verify-card" wx:if="{{verifyResult}}">
+    <text class="section-title">验证结果</text>
+    <view class="verify-row">
+      <text class="label">是否有效</text>
+      <text class="value">{{verifyResult.valid ? '是' : '否'}}</text>
+    </view>
+    <view class="verify-row">
+      <text class="label">提示信息</text>
+      <text class="value">{{verifyResult.message || '校验完成'}}</text>
+    </view>
+    <view class="verify-row" wx:if="{{verifyResult.data}}">
+      <text class="label">持有人</text>
+      <text class="value">{{verifyResult.data.user_name}}</text>
+    </view>
+    <view class="verify-row" wx:if="{{verifyResult.data}}">
+      <text class="label">所属任务</text>
+      <text class="value">{{verifyResult.data.task_title}}</text>
+    </view>
+  </view>
+</view>

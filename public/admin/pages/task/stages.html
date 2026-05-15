@@ -1,0 +1,179 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <title>阶段管理</title>
+  <link rel="stylesheet" href="../../vendor/layui/layui.css">
+  <style>
+    body { padding: 10px; background: #fff; }
+    .toolbar { margin-bottom: 10px; }
+  </style>
+</head>
+<body>
+<div class="toolbar">
+  <button class="layui-btn layui-btn-sm" id="btnAddStage"><i class="layui-icon layui-icon-add-1"></i> 添加阶段</button>
+</div>
+<table class="layui-table" id="stageTable">
+  <thead><tr><th>序号</th><th>阶段名称</th><th>阶段类型</th><th>排序</th><th>状态</th><th>操作</th></tr></thead>
+  <tbody id="stageList"></tbody>
+</table>
+<script src="../../vendor/jquery/jquery.min.js"></script>
+<script src="../../vendor/layui/layui.js"></script>
+<script>
+(function() {
+  var BASE_API = '../../';
+  var taskId = null;
+
+  function getQueryParam(name) {
+    var reg = new RegExp("(^|&)" + name + "=([^&]*)(&|$)", "i");
+    var r = window.location.search.substr(1).match(reg);
+    if (r != null) return decodeURIComponent(r[2]);
+    return null;
+  }
+
+  function getToken() {
+    return localStorage.getItem('admin_token') || '';
+  }
+
+  function ajax(opts) {
+    return $.ajax({
+      url: opts.url,
+      type: opts.type || 'GET',
+      data: opts.data || {},
+      dataType: 'json',
+      beforeSend: function(xhr) {
+        var t = getToken();
+        if (t) xhr.setRequestHeader('Admin-Token', t);
+      },
+      success: function(res) {
+        if (res.code === 401) {
+          localStorage.removeItem('admin_token');
+          localStorage.removeItem('admin_user');
+          if (parent.location) parent.location.href = 'login.html';
+          return;
+        }
+        opts.success && opts.success(res);
+      },
+      error: function() {
+        layer.msg('请求失败', { icon: 2 });
+        opts.error && opts.error();
+      }
+    });
+  }
+
+  function loadStages() {
+    ajax({
+      url: BASE_API + 'task/' + taskId + '/stages',
+      success: function(res) {
+        if (res.code === 200) {
+          renderList(res.data || []);
+        }
+      }
+    });
+  }
+
+  function renderList(data) {
+    var tbody = document.getElementById('stageList');
+    if (data.length === 0) {
+      tbody.innerHTML = '<tr><td colspan="6" style="text-align:center;color:#999;">暂无阶段数据</td></tr>';
+      return;
+    }
+    var typeMap = { course: '课程', exam: '考试', task: '任务' };
+    var html = '';
+    data.forEach(function(st, idx) {
+      var statusText = st.status == 1 ? '<span style="color:#52c41a;">启用</span>' : '<span style="color:#999;">禁用</span>';
+      html += '<tr>' +
+        '<td>' + (idx + 1) + '</td>' +
+        '<td>' + escapeHtml(st.title) + '</td>' +
+        '<td>' + (typeMap[st.stage_type] || st.stage_type || '-') + '</td>' +
+        '<td>' + (st.sort || 0) + '</td>' +
+        '<td>' + statusText + '</td>' +
+        '<td>' +
+          '<a href="javascript:void(0);" class="edit-stage" data-id="' + st.id + '" style="color:#009688;margin-right:10px;">编辑</a>' +
+          '<a href="javascript:void(0);" class="del-stage" data-id="' + st.id + '" style="color:#ff4d4f;">删除</a>' +
+        '</td>' +
+        '</tr>';
+    });
+    tbody.innerHTML = html;
+
+    tbody.querySelectorAll('.edit-stage').forEach(function(a) {
+      a.addEventListener('click', function() {
+        var id = this.getAttribute('data-id');
+        openStageForm(id);
+      });
+    });
+
+    tbody.querySelectorAll('.del-stage').forEach(function(a) {
+      a.addEventListener('click', function() {
+        var id = this.getAttribute('data-id');
+        layer.confirm('确定删除该阶段？', { icon: 3 }, function(idx) {
+          ajax({
+            url: BASE_API + 'stage/' + id,
+            type: 'DELETE',
+            success: function(res) {
+              if (res.code === 200) {
+                layer.msg('删除成功', { icon: 1 });
+                loadStages();
+              } else {
+                layer.msg(res.msg || '删除失败', { icon: 2 });
+              }
+            }
+          });
+          layer.close(idx);
+        });
+      });
+    });
+  }
+
+  function openStageForm(id) {
+    var title = id ? '编辑阶段' : '添加阶段';
+    var url = '../js/stage_form.html' + (id ? ('?id=' + id + '&task_id=' + taskId) : ('?task_id=' + taskId));
+    layer.open({
+      type: 2,
+      title: title,
+      area: ['920px', '680px'],
+      skin: 'admin-layer-shell',
+      shade: 0.42,
+      shadeClose: false,
+      maxmin: true,
+      resize: true,
+      content: url,
+      btn: ['保存', '取消'],
+      yes: function(index, layero) {
+        var frame = layero.find('iframe')[0].contentWindow;
+        if (frame.saveStage) {
+          frame.saveStage(function(success) {
+            if (success) {
+              layer.close(index);
+              loadStages();
+            }
+          });
+        }
+      }
+    });
+  }
+
+  function escapeHtml(str) {
+    if (!str) return '';
+    return String(str).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+  }
+
+  layui.use(['layer'], function() {
+    var layer = layui.layer;
+    taskId = getQueryParam('task_id') || getQueryParam('id');
+
+    if (!taskId || taskId.indexOf('new_') === 0) {
+      document.getElementById('stageList').innerHTML = '<tr><td colspan="6" style="text-align:center;color:#999;">请先保存任务后再管理阶段</td></tr>';
+      return;
+    }
+
+    loadStages();
+
+    $('#btnAddStage').on('click', function() {
+      openStageForm(null);
+    });
+  });
+})();
+</script>
+</body>
+</html>

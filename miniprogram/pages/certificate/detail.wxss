@@ -1,0 +1,139 @@
+/* miniprogram/pages/certificate/detail.wxss */
+.page {
+  min-height: 100vh;
+  background: #f5f7fa;
+  padding: 24rpx;
+}
+
+.hero-card,
+.info-card,
+.verify-card {
+  background: #fff;
+  border-radius: 20rpx;
+  padding: 28rpx;
+  box-shadow: 0 4rpx 20rpx rgba(0, 0, 0, 0.06);
+  margin-bottom: 24rpx;
+}
+
+.hero-top {
+  display: flex;
+  align-items: center;
+  gap: 20rpx;
+}
+
+.hero-icon {
+  width: 88rpx;
+  height: 88rpx;
+  border-radius: 22rpx;
+  background: linear-gradient(135deg, #f1c40f 0%, #f39c12 100%);
+  color: #fff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 40rpx;
+  font-weight: 700;
+  flex-shrink: 0;
+}
+
+.hero-info {
+  flex: 1;
+  min-width: 0;
+}
+
+.hero-title {
+  display: block;
+  font-size: 34rpx;
+  font-weight: 700;
+  color: #333;
+  margin-bottom: 10rpx;
+}
+
+.hero-sub {
+  display: block;
+  font-size: 24rpx;
+  color: #666;
+}
+
+.status-tag {
+  padding: 8rpx 20rpx;
+  border-radius: 999rpx;
+  font-size: 24rpx;
+}
+
+.status-tag.valid {
+  background: #E8F5E9;
+  color: #43A047;
+}
+
+.status-tag.revoked {
+  background: #FFF3E0;
+  color: #FF9800;
+}
+
+.status-tag.expired {
+  background: #FFEBEE;
+  color: #F44336;
+}
+
+.info-row,
+.verify-row {
+  display: flex;
+  justify-content: space-between;
+  gap: 20rpx;
+  padding: 18rpx 0;
+  border-bottom: 1rpx solid #f2f2f2;
+}
+
+.info-row:last-child,
+.verify-row:last-child {
+  border-bottom: none;
+}
+
+.label {
+  font-size: 26rpx;
+  color: #999;
+}
+
+.value {
+  flex: 1;
+  text-align: right;
+  font-size: 28rpx;
+  color: #333;
+}
+
+.action-group {
+  display: flex;
+  flex-direction: column;
+  gap: 20rpx;
+  margin-bottom: 24rpx;
+}
+
+.btn {
+  width: 100%;
+  height: 84rpx;
+  border-radius: 42rpx;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 30rpx;
+  font-weight: 600;
+}
+
+.btn.primary {
+  background: linear-gradient(135deg, #f1c40f 0%, #f39c12 100%);
+  color: #fff;
+}
+
+.btn.secondary {
+  background: #fff;
+  border: 2rpx solid #d9e1ea;
+  color: #555;
+}
+
+.section-title {
+  display: block;
+  font-size: 30rpx;
+  font-weight: 700;
+  color: #333;
+  margin-bottom: 12rpx;
+}

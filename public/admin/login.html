@@ -1,0 +1,194 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>登录 - 在线培训考试系统</title>
+    <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='18' fill='%234f46e5'/%3E%3Cpath d='M18 20h28v6H18zm0 12h28v6H18zm0 12h18v6H18z' fill='white'/%3E%3C/svg%3E">
+    <link rel="stylesheet" href="vendor/layui/layui.css">
+    <link rel="stylesheet" href="css/login.css">
+</head>
+<body>
+    <div class="login-scene">
+        <div class="login-shell">
+            <aside class="login-aside">
+                <span class="brand-chip">
+                    <i class="layui-icon layui-icon-template-1"></i>
+                    2026 管理后台
+                </span>
+                <h1>在线培训考试系统<br>统一管理控制台</h1>
+                <p>在同一套工作台内处理学员、课程、题库、考试、证书与培训任务。界面、表格、弹窗与表单已统一为新的后台视觉风格。</p>
+
+                <div class="feature-list">
+                    <div class="feature-item">
+                        <div class="feature-icon"><i class="layui-icon layui-icon-chart-screen"></i></div>
+                        <div class="feature-copy">
+                            <strong>统一工作台</strong>
+                            <span>入口、列表、图表与详情操作全部收敛到同一套后台体验。</span>
+                        </div>
+                    </div>
+                    <div class="feature-item">
+                        <div class="feature-icon"><i class="layui-icon layui-icon-release"></i></div>
+                        <div class="feature-copy">
+                            <strong>业务流更集中</strong>
+                            <span>题库、课程、考试与证书链路切换更快，减少重复跳转成本。</span>
+                        </div>
+                    </div>
+                    <div class="feature-item">
+                        <div class="feature-icon"><i class="layui-icon layui-icon-auz"></i></div>
+                        <div class="feature-copy">
+                            <strong>风格统一</strong>
+                            <span>iframe 子页与弹窗表单自动接入同一套主题，不再割裂。</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="metric-row">
+                    <div class="metric-card">
+                        <strong>2026</strong>
+                        <span>新视觉后台</span>
+                    </div>
+                    <div class="metric-card">
+                        <strong>24h</strong>
+                        <span>运营可视化</span>
+                    </div>
+                    <div class="metric-card">
+                        <strong>All-in-One</strong>
+                        <span>统一业务入口</span>
+                    </div>
+                </div>
+            </aside>
+
+            <div class="login-panel">
+                <div class="login-card">
+                    <div class="login-card-header">
+                        <span class="eyebrow">Admin Access</span>
+                        <h2>进入后台</h2>
+                        <p>请输入管理员账号与密码，继续进入培训考试管理后台。</p>
+                    </div>
+
+                    <form class="login-form" onsubmit="return false;">
+                        <div>
+                            <label class="field-label" for="username">管理员账号</label>
+                            <div class="field-shell">
+                                <i class="layui-icon layui-icon-username icon-left"></i>
+                                <input type="text" name="username" id="username" placeholder="请输入用户名" value="admin" autocomplete="off">
+                            </div>
+                        </div>
+
+                        <div>
+                            <label class="field-label" for="password">登录密码</label>
+                            <div class="field-shell">
+                                <i class="layui-icon layui-icon-password icon-left"></i>
+                                <input type="password" name="password" id="password" placeholder="请输入密码" value="admin123" autocomplete="current-password">
+                            </div>
+                        </div>
+
+                        <div class="form-error" id="formError"></div>
+
+                        <button type="button" class="btn-login" id="btnLogin">进入后台</button>
+
+                        <div class="login-tips">
+                            <span><i class="layui-icon layui-icon-ok-circle"></i> 同域安全登录</span>
+                            <span><i class="layui-icon layui-icon-notice"></i> 默认账号：admin / admin123</span>
+                        </div>
+                    </form>
+
+                    <div class="login-footer">
+                        <div><strong>提示：</strong>首次进入后可继续在后台修改管理员信息与密码。</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="vendor/jquery/jquery.min.js"></script>
+    <script src="vendor/layui/layui.js"></script>
+    <script>
+        var layer;
+
+        layui.use('layer', function() {
+            layer = layui.layer;
+        });
+
+        var btnLogin = document.getElementById('btnLogin');
+        var defaultBtnText = btnLogin.textContent;
+
+        function setCookie(name, value, days) {
+            var maxAge = (days || 7) * 24 * 60 * 60;
+            document.cookie = name + '=' + encodeURIComponent(value) + '; path=/; max-age=' + maxAge + '; SameSite=Lax';
+        }
+
+        function setStoredValue(key, value) {
+            try {
+                localStorage.setItem(key, value);
+            } catch (e) {}
+            setCookie(key, value, 7);
+        }
+
+        document.getElementById('btnLogin').addEventListener('click', doLogin);
+        document.getElementById('username').addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') doLogin();
+        });
+        document.getElementById('password').addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') doLogin();
+        });
+
+        function showError(msg) {
+            var el = document.getElementById('formError');
+            el.textContent = msg;
+            el.style.display = 'block';
+        }
+
+        function clearError() {
+            document.getElementById('formError').style.display = 'none';
+            document.getElementById('formError').textContent = '';
+        }
+
+        function setLoading(loading) {
+            btnLogin.disabled = !!loading;
+            btnLogin.textContent = loading ? '登录中...' : defaultBtnText;
+        }
+
+        function doLogin() {
+            var username = document.getElementById('username').value.trim();
+            var password = document.getElementById('password').value.trim();
+
+            if (!username) {
+                showError('请输入用户名');
+                return;
+            }
+            if (!password) {
+                showError('请输入密码');
+                return;
+            }
+
+            clearError();
+            setLoading(true);
+
+            $.ajax({
+                url: 'login',
+                type: 'POST',
+                data: { username: username, password: password },
+                dataType: 'json',
+                success: function(res) {
+                    setLoading(false);
+                    if (res.code === 200) {
+                        setStoredValue('admin_token', res.data.token);
+                        setStoredValue('admin_user', JSON.stringify(res.data));
+                        layer.msg('登录成功', { icon: 1, shade: 0.3, time: 1000 }, function() {
+                            location.href = 'index.html';
+                        });
+                    } else {
+                        showError(res.msg || '登录失败');
+                    }
+                },
+                error: function() {
+                    setLoading(false);
+                    showError('网络异常，请稍后重试');
+                }
+            });
+        }
+    </script>
+</body>
+</html>

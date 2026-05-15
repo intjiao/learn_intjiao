@@ -1,0 +1,130 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>学员登录 - 在线培训考试系统</title>
+    <link rel="stylesheet" href="https://unpkg.com/layui@2.9.23/dist/css/layui.css">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'PingFang SC', 'Microsoft YaHei', sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .login-wrapper { width: 100%; max-width: 400px; padding: 20px; }
+        .login-box { background: #fff; border-radius: 12px; box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3); overflow: hidden; }
+        .login-header { background: linear-gradient(135deg, #1890FF 0%, #0050B3 100%); color: #fff; padding: 40px 30px; text-align: center; }
+        .login-header h1 { font-size: 22px; font-weight: 600; margin-bottom: 6px; }
+        .login-header p { font-size: 13px; opacity: 0.85; }
+        .login-form { padding: 32px 30px; }
+        .icon-wrap { position: relative; margin-bottom: 20px; }
+        .icon-wrap .icon-left { position: absolute; left: 12px; top: 50%; transform: translateY(-50%); color: #999; font-size: 18px; z-index: 1; pointer-events: none; }
+        .icon-wrap input { width: 100%; height: 44px; padding-left: 40px; border: 1px solid #e8e8e8; border-radius: 4px; font-size: 14px; transition: border-color 0.2s; }
+        .icon-wrap input:focus { outline: none; border-color: #1890FF; box-shadow: 0 0 0 2px rgba(24,144,255,0.1); }
+        .btn-login { width: 100%; height: 44px; background: linear-gradient(135deg, #1890FF 0%, #0050B3 100%); color: #fff; border: none; border-radius: 4px; font-size: 15px; cursor: pointer; transition: opacity 0.2s; }
+        .btn-login:hover { opacity: 0.9; }
+        .btn-login:disabled { opacity: 0.6; cursor: not-allowed; }
+        .login-footer { text-align: center; margin-top: 16px; font-size: 12px; color: #999; }
+        .login-footer span { display: inline-block; padding: 3px 12px; background: #f5f5f5; border-radius: 20px; }
+        .form-error { color: #F44336; font-size: 12px; margin-top: -10px; margin-bottom: 10px; padding-left: 4px; display: none; }
+    </style>
+</head>
+<body>
+    <div class="login-wrapper">
+        <div class="login-box">
+            <div class="login-header">
+                <h1>在线培训考试系统</h1>
+                <p>学员登录入口</p>
+            </div>
+            <form class="login-form" onsubmit="return false;">
+                <div class="icon-wrap">
+                    <i class="layui-icon layui-icon-username icon-left"></i>
+                    <input type="text" name="username" id="username" placeholder="请输入用户名" value="zhangsan" autocomplete="off">
+                </div>
+                <div class="icon-wrap">
+                    <i class="layui-icon layui-icon-password icon-left"></i>
+                    <input type="password" name="password" id="password" placeholder="请输入密码" value="123456">
+                </div>
+                <div class="form-error" id="formError"></div>
+                <button type="button" class="btn-login" id="btnLogin">登 录</button>
+                <div class="login-footer">
+                    <span>演示账号：zhangsan / 123456</span>
+                </div>
+            </form>
+        </div>
+    </div>
+    <script src="https://unpkg.com/jquery@3.7.1/dist/jquery.min.js"></script>
+    <script src="https://unpkg.com/layui@2.9.23/dist/layui.js"></script>
+    <script src="api.js"></script>
+    <script>
+        var layer;
+
+        layui.use('layer', function() {
+            layer = layui.layer;
+        });
+
+        document.getElementById('btnLogin').addEventListener('click', doLogin);
+        document.getElementById('password').addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') doLogin();
+        });
+
+        function showError(msg) {
+            var el = document.getElementById('formError');
+            el.textContent = msg;
+            el.style.display = 'block';
+        }
+
+        function clearError() {
+            document.getElementById('formError').style.display = 'none';
+        }
+
+        function doLogin() {
+            var username = document.getElementById('username').value.trim();
+            var password = document.getElementById('password').value.trim();
+
+            if (!username) {
+                showError('请输入用户名');
+                return;
+            }
+            if (!password) {
+                showError('请输入密码');
+                return;
+            }
+
+            clearError();
+            var btn = document.getElementById('btnLogin');
+            btn.disabled = true;
+            btn.textContent = '登录中...';
+
+            $.ajax({
+                url: '../api/auth/login',
+                type: 'POST',
+                data: { username: username, password: password },
+                dataType: 'json',
+                success: function(res) {
+                    btn.disabled = false;
+                    btn.textContent = '登 录';
+                    if (res.code === 200) {
+                        localStorage.setItem('api_token', res.data.token);
+                        localStorage.setItem('user_info', JSON.stringify(res.data.user));
+                        layer.msg('登录成功', { icon: 1, shade: 0.3, time: 1000 }, function() {
+                            location.href = 'index.html';
+                        });
+                    } else {
+                        showError(res.msg || '登录失败');
+                    }
+                },
+                error: function(xhr) {
+                    btn.disabled = false;
+                    btn.textContent = '登 录';
+                    showError('网络异常，请稍后重试');
+                }
+            });
+        }
+    </script>
+</body>
+</html>

@@ -1,0 +1,216 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>首页看板</title>
+    <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='18' fill='%234f46e5'/%3E%3Cpath d='M18 20h28v6H18zm0 12h28v6H18zm0 12h18v6H18z' fill='white'/%3E%3C/svg%3E">
+    <link rel="stylesheet" href="../vendor/layui/layui.css">
+    <script src="../vendor/echarts/echarts.min.js"></script>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { padding: 15px; background: #f0f2f5; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; }
+        .stats-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 14px; margin-bottom: 14px; }
+        .stat-card { display: flex; align-items: center; gap: 14px; padding: 18px; background: #fff; border-radius: 8px; box-shadow: 0 2px 8px rgba(0,0,0,0.06); }
+        .stat-icon { width: 50px; height: 50px; border-radius: 10px; display: flex; align-items: center; justify-content: center; font-size: 24px; color: #fff; flex-shrink: 0; }
+        .stat-info { flex: 1; }
+        .stat-num { font-size: 26px; font-weight: 600; color: #333; line-height: 1.2; }
+        .stat-text { font-size: 13px; color: #999; margin-top: 3px; }
+        .charts-row { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; margin-bottom: 14px; }
+        .chart-box { background: #fff; border-radius: 8px; padding: 16px; box-shadow: 0 2px 8px rgba(0,0,0,0.06); }
+        .chart-box h3 { font-size: 15px; font-weight: 600; color: #333; margin-bottom: 12px; padding-bottom: 10px; border-bottom: 1px solid #f0f0f0; }
+        .chart-box h3 .more { font-size: 12px; font-weight: 400; color: #999; float: right; }
+        .recent-section { background: #fff; border-radius: 8px; padding: 16px; box-shadow: 0 2px 8px rgba(0,0,0,0.06); }
+        .recent-section h3 { font-size: 15px; font-weight: 600; color: #333; margin-bottom: 12px; padding-bottom: 10px; border-bottom: 1px solid #f0f0f0; }
+        .loading { text-align: center; padding: 60px; color: #999; }
+        .loading i { font-size: 28px; color: #1E9FFF; }
+    </style>
+</head>
+<body>
+
+<div class="stats-grid">
+    <div class="stat-card">
+        <div class="stat-icon" style="background: linear-gradient(135deg, #667eea, #764ba2);"><i class="layui-icon layui-icon-user"></i></div>
+        <div class="stat-info">
+            <div class="stat-num" id="statUser">-</div>
+            <div class="stat-text">学员总数</div>
+        </div>
+    </div>
+    <div class="stat-card">
+        <div class="stat-icon" style="background: linear-gradient(135deg, #f093fb, #f5576c);"><i class="layui-icon layui-icon-survey"></i></div>
+        <div class="stat-info">
+            <div class="stat-num" id="statQuestion">-</div>
+            <div class="stat-text">试题总数</div>
+        </div>
+    </div>
+    <div class="stat-card">
+        <div class="stat-icon" style="background: linear-gradient(135deg, #4facfe, #00f2fe);"><i class="layui-icon layui-icon-video"></i></div>
+        <div class="stat-info">
+            <div class="stat-num" id="statCourse">-</div>
+            <div class="stat-text">课程总数</div>
+        </div>
+    </div>
+    <div class="stat-card">
+        <div class="stat-icon" style="background: linear-gradient(135deg, #43e97b, #38f9d7);"><i class="layui-icon layui-icon-theme"></i></div>
+        <div class="stat-info">
+            <div class="stat-num" id="statCert">-</div>
+            <div class="stat-text">已发证书</div>
+        </div>
+    </div>
+</div>
+
+<div class="stats-grid" style="grid-template-columns: repeat(3, 1fr);">
+    <div class="stat-card">
+        <div class="stat-icon" style="background: linear-gradient(135deg, #fa709a, #fee140);"><i class="layui-icon layui-icon-chart-screen"></i></div>
+        <div class="stat-info">
+            <div class="stat-num" id="statExamToday">- <small style="font-size:13px;color:#999;">次</small></div>
+            <div class="stat-text">今日考试</div>
+        </div>
+    </div>
+    <div class="stat-card">
+        <div class="stat-icon" style="background: linear-gradient(135deg, #a18cd1, #fbc2eb);"><i class="layui-icon layui-icon-chart"></i></div>
+        <div class="stat-info">
+            <div class="stat-num" id="statPassRate">-<small style="font-size:13px;color:#999;">%</small></div>
+            <div class="stat-text">平均通过率</div>
+        </div>
+    </div>
+    <div class="stat-card">
+        <div class="stat-icon" style="background: linear-gradient(135deg, #fccb90, #d57eeb);"><i class="layui-icon layui-icon-chart"></i></div>
+        <div class="stat-info">
+            <div class="stat-num" id="statAvgScore">-<small style="font-size:13px;color:#999;">分</small></div>
+            <div class="stat-text">平均成绩</div>
+        </div>
+    </div>
+</div>
+
+<div class="charts-row">
+    <div class="chart-box">
+        <h3>试题类型分布</h3>
+        <div id="questionTypeChart" style="height:220px;"></div>
+    </div>
+    <div class="chart-box">
+        <h3>培训任务状态</h3>
+        <div id="trainingStatusChart" style="height:220px;"></div>
+    </div>
+</div>
+
+<div class="recent-section">
+    <h3>最近考试记录 <span class="more">共计 <span id="totalExam">-</span> 条</span></h3>
+    <table class="layui-hide" id="recentExamTable" lay-filter="recentExamTable"></table>
+</div>
+
+<script src="../vendor/jquery/jquery.min.js"></script>
+<script src="../vendor/layui/layui.js"></script>
+<script>
+(function() {
+    function getToken() {
+        if (window.parent && typeof window.parent.getAdminToken === 'function') {
+            return window.parent.getAdminToken();
+        }
+        try {
+            return localStorage.getItem('admin_token') || '';
+        } catch (e) {
+            return '';
+        }
+    }
+
+    $.ajax({
+        url: '../dashboard/stats',
+        type: 'GET',
+        dataType: 'json',
+        beforeSend: function(xhr) {
+            var t = getToken();
+            if (t) xhr.setRequestHeader('Admin-Token', t);
+        },
+        success: function(res) {
+            if (res.code !== 200) return;
+            var d = res.data;
+            $('#statUser').text(d.user.total || 0);
+            $('#statQuestion').text(d.question.total || 0);
+            $('#statCourse').text(d.course.total || 0);
+            $('#statCert').text(d.certificate.total || 0);
+            $('#statExamToday').html((d.exam.today || 0) + ' <small style="font-size:13px;color:#999;">次</small>');
+            $('#statPassRate').html((d.exam.passRate || 0) + '<small style="font-size:13px;color:#999;">%</small>');
+            $('#statAvgScore').html((d.exam.avgScore || 0) + '<small style="font-size:13px;color:#999;">分</small>');
+
+            if (typeof echarts !== 'undefined' && echarts) {
+                try {
+                    var qChart = echarts.init(document.getElementById('questionTypeChart'));
+                    qChart.setOption({
+                        tooltip: { trigger: 'item' },
+                        legend: { bottom: 0, textStyle: { fontSize: 12 } },
+                        color: ['#667eea', '#f093fb', '#4facfe', '#43e97b', '#fccb90'],
+                        series: [{
+                            type: 'pie', radius: ['40%', '70%'],
+                            avoidLabelOverlap: false,
+                            label: { show: false },
+                            emphasis: { label: { show: true, fontSize: 13, fontWeight: 'bold' } },
+                            data: [
+                                { value: d.question.single || 0, name: '单选题' },
+                                { value: d.question.multi || 0, name: '多选题' },
+                                { value: d.question.fill || 0, name: '填空题' },
+                                { value: d.question.judge || 0, name: '判断题' },
+                                { value: d.question.essay || 0, name: '问答题' }
+                            ]
+                        }]
+                    });
+
+                    var total = d.training.total || 0;
+                    var active = d.training.active || 0;
+                    var tChart = echarts.init(document.getElementById('trainingStatusChart'));
+                    tChart.setOption({
+                        tooltip: { trigger: 'item' },
+                        legend: { bottom: 0, textStyle: { fontSize: 12 } },
+                        color: ['#4facfe', '#43e97b', '#fa709a'],
+                        series: [{
+                            type: 'pie', radius: ['40%', '70%'],
+                            data: [
+                                { value: active, name: '进行中' },
+                                { value: Math.max(0, total - active), name: '已结束' }
+                            ]
+                        }]
+                    });
+                } catch(e) { console.log('Chart error:', e); }
+            }
+        }
+    });
+
+    layui.use('table', function() {
+        var table = layui.table;
+        table.render({
+            elem: '#recentExamTable',
+            url: '../exam/list',
+            page: true,
+            limit: 5,
+            limits: [5, 10],
+            headers: { 'Admin-Token': getToken() },
+            response: { statusCode: 200 },
+            request: { pageName: 'page', limitName: 'limit' },
+            cols: [[
+                { field: 'user_name', title: '学员', width: 110 },
+                { field: 'paper_title', title: '试卷', minWidth: 150 },
+                { field: 'score', title: '得分', width: 70, templet: function(d) { return d.score || '-'; } },
+                { field: 'total_score', title: '总分', width: 70 },
+                { field: 'pass_status', title: '结果', width: 80, templet: function(d) {
+                    if (d.status != 2) return '<span style="color:#999;">进行中</span>';
+                    return d.pass_status == 1
+                        ? '<span style="color:#43e97b;">及格</span>'
+                        : '<span style="color:#fa709a;">不及格</span>';
+                }},
+                { field: 'duration', title: '用时', width: 90, templet: function(d) {
+                    var s = d.duration || 0;
+                    return Math.floor(s / 60) + '分' + (s % 60) + '秒';
+                }},
+                { field: 'start_time', title: '考试时间', width: 165, templet: function(d) {
+                    if (!d.start_time) return '-';
+                    return d.start_time.replace('T', ' ').substring(0, 19);
+                }}
+            ]],
+            done: function(res) {
+                $('#totalExam').text(res.count || 0);
+            }
+        });
+    });
+})();
+</script>
+</body>
+</html>

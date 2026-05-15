@@ -1,0 +1,253 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <title>试卷管理</title>
+  <link rel="stylesheet" href="../../vendor/layui/layui.css">
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body { background: #f5f7fa; }
+    .search-bar { padding: 14px 16px 0; background: #fff; border-bottom: 1px solid #f0f0f0; }
+    .search-bar .layui-form-item { margin-bottom: 12px; }
+    .search-bar .layui-form-label {
+      width: 78px !important;
+      padding-right: 10px;
+      white-space: nowrap;
+      word-break: keep-all;
+      overflow: visible;
+      text-align: right;
+    }
+    .toolbar { padding: 12px 16px; background: #fff; border-bottom: 1px solid #f0f0f0; }
+    .data-table { background: #fff; }
+    .layui-table-view { border: none; }
+    .layui-table-box { background: #fff; }
+  </style>
+</head>
+<body>
+  <div class="search-bar">
+    <form class="layui-form" lay-filter="searchForm">
+      <div class="layui-form-item" style="margin-bottom: 10px;">
+        <div class="layui-inline">
+          <label class="layui-form-label" style="width: 70px;">关键词</label>
+          <div class="layui-input-inline">
+            <input type="text" name="keyword" placeholder="试卷标题" class="layui-input">
+          </div>
+        </div>
+        <div class="layui-inline">
+          <label class="layui-form-label" style="width: 70px;">状态</label>
+          <div class="layui-input-inline">
+            <select name="status">
+              <option value="">全部</option>
+              <option value="0">禁用</option>
+              <option value="1">草稿</option>
+              <option value="2">已发布</option>
+            </select>
+          </div>
+        </div>
+        <div class="layui-inline">
+          <button class="layui-btn layui-btn-normal" lay-submit lay-filter="searchBtn"><i class="layui-icon layui-icon-search"></i> 查询</button>
+          <button type="reset" class="layui-btn layui-btn-primary">重置</button>
+        </div>
+      </div>
+    </form>
+  </div>
+
+  <div class="toolbar">
+    <button class="layui-btn layui-btn-sm" id="btnAdd"><i class="layui-icon layui-icon-add-1"></i> 添加试卷</button>
+    <button class="layui-btn layui-btn-sm layui-btn-warm" id="btnExport"><i class="layui-icon layui-icon-export"></i> 导出</button>
+  </div>
+
+  <div class="data-table">
+    <table id="paperTable" lay-filter="paperTable"></table>
+  </div>
+
+  <script type="text/html" id="typeTpl">
+    {{# var paperTypeMap = {1: '固定试卷', 2: '随机试卷'}; }}
+    <span class="layui-badge {{d.type==1?'layui-bg-blue':'layui-bg-orange'}}">{{paperTypeMap[d.type] || d.type}}</span>
+  </script>
+
+  <script type="text/html" id="statusTpl">
+    {{# var map = {0:'<span style="color:#999;">禁用</span>', 1:'<span style="color:#FFB800;">草稿</span>', 2:'<span style="color:#43e97b;">已发布</span>'}; }}
+    {{ map[d.status] || d.status }}
+  </script>
+
+  <script type="text/html" id="actionBar">
+    <a class="layui-btn layui-btn-xs" lay-event="edit"><i class="layui-icon layui-icon-edit"></i> 编辑</a>
+    {{# if(d.type === 2 && d.status === 2) { }}
+    <a class="layui-btn layui-btn-normal layui-btn-xs" lay-event="generate"><i class="layui-icon layui-icon-refresh"></i> 生成</a>
+    {{# } }}
+    {{# if(d.status === 1) { }}
+    <a class="layui-btn layui-btn-warm layui-btn-xs" lay-event="publish"><i class="layui-icon layui-icon-release"></i> 发布</a>
+    {{# } }}
+    <a class="layui-btn layui-btn-danger layui-btn-xs" lay-event="del"><i class="layui-icon layui-icon-delete"></i> 删除</a>
+  </script>
+
+  <script src="../../vendor/jquery/jquery.min.js"></script>
+  <script src="../../vendor/layui/layui.js"></script>
+  <script>
+  (function() {
+    var TABLE_ID = 'paperTable';
+    var paperTypeMap = {1: '固定试卷', 2: '随机试卷'};
+
+    function getToken() {
+      return localStorage.getItem('admin_token') || '';
+    }
+
+    function ajax(opts) {
+      return $.ajax({
+        url: opts.url,
+        type: opts.type || 'GET',
+        data: opts.data || {},
+        dataType: 'json',
+        beforeSend: function(xhr) {
+          var t = getToken();
+          if (t) xhr.setRequestHeader('Admin-Token', t);
+        },
+        success: function(res) {
+          if (res.code === 401) {
+            localStorage.removeItem('admin_token');
+            localStorage.removeItem('admin_user');
+            parent.location.href = 'login.html';
+            return;
+          }
+          opts.success && opts.success(res);
+        },
+        error: function() {
+          layer.msg('网络请求失败', { icon: 2 });
+          opts.error && opts.error();
+        }
+      });
+    }
+
+    function showSuccess(msg) { layer.msg(msg, { icon: 1, shade: 0.3, time: 1500 }); }
+    function showError(msg) { layer.msg(msg, { icon: 2, shade: 0.3, time: 2000 }); }
+
+    function openForm(title, url, w, h) {
+      w = w || 900; h = h || 650;
+      parent.layer.open({
+        type: 2,
+        title: title,
+        area: [w + 'px', h + 'px'],
+        fix: false,
+        maxmin: true,
+        shadeClose: false,
+        shade: 0.4,
+        content: url,
+        zIndex: parent.layer.zIndex
+      });
+    }
+
+    function deleteItem(url, id) {
+      var msg = id ? '确定删除ID为【' + id + '】的数据吗？' : '确定删除选中的数据吗？';
+      layer.confirm(msg, function(idx) {
+        ajax({
+          url: url,
+          type: 'DELETE',
+          success: function(res) {
+            if (res.code === 200) {
+              showSuccess('删除成功');
+              table.reload(TABLE_ID);
+            } else {
+              showError(res.msg || '删除失败');
+            }
+          }
+        });
+        layer.close(idx);
+      });
+    }
+
+    var table;
+
+    layui.use(['table', 'form', 'layer'], function() {
+      table = layui.table;
+      var form = layui.form;
+
+      table.render({
+        elem: '#' + TABLE_ID,
+        url: '../../paper/list',
+        page: true,
+        limit: 15,
+        limits: [10, 15, 20, 30, 50],
+        headers: { 'Admin-Token': getToken() },
+        response: { statusCode: 200 },
+        request: { pageName: 'page', limitName: 'limit' },
+        cols: [[
+          { type: 'checkbox', fixed: 'left' },
+          { field: 'id', title: 'ID', width: 80 },
+          { field: 'title', title: '试卷标题', minWidth: 200 },
+          { field: 'type', title: '类型', width: 110, toolbar: '#typeTpl' },
+          { field: 'total_count', title: '题数', width: 80 },
+          { field: 'total_score', title: '总分', width: 80 },
+          { field: 'pass_score', title: '及格分', width: 80 },
+          { field: 'duration', title: '时长(分)', width: 90 },
+          { field: 'status', title: '状态', width: 100, toolbar: '#statusTpl' },
+          { fixed: 'right', title: '操作', width: 280, toolbar: '#actionBar' }
+        ]]
+      });
+
+      form.on('submit(searchBtn)', function(data) {
+        table.reload(TABLE_ID, { where: data.field, page: { curr: 1 } });
+        return false;
+      });
+
+      table.on('tool(' + TABLE_ID + ')', function(obj) {
+        var data = obj.data;
+        var event = obj.event;
+        if (event === 'edit') {
+          openForm('编辑试卷', 'pages/paper/form.html?id=' + data.id, 900, 650);
+        } else if (event === 'del') {
+          deleteItem('paper/' + data.id, data.id);
+        } else if (event === 'publish') {
+          layer.confirm('确定要发布此试卷吗？', function(idx) {
+            ajax({
+              url: '../../paper/' + data.id + '/publish',
+              type: 'POST',
+              success: function(res) {
+                if (res.code === 200) {
+                  showSuccess('发布成功');
+                  table.reload(TABLE_ID);
+                } else {
+                  showError(res.msg);
+                }
+              }
+            });
+            layer.close(idx);
+          });
+        } else if (event === 'generate') {
+          layer.confirm('确定要生成随机试卷吗？', function(idx) {
+            layer.load(2);
+            ajax({
+              url: '../../paper/' + data.id + '/generate',
+              type: 'POST',
+              success: function(res) {
+                layer.closeAll('loading');
+                if (res.code === 200) {
+                  showSuccess('生成成功，共生成' + (res.data && res.data.count ? res.data.count : '') + '道题');
+                  table.reload(TABLE_ID);
+                } else {
+                  showError(res.msg);
+                }
+              }
+            });
+            layer.close(idx);
+          });
+        }
+      });
+
+      $('#btnAdd').on('click', function() {
+        openForm('添加试卷', 'pages/paper/form.html', 900, 650);
+      });
+
+      $('#btnExport').on('click', function() {
+        var params = $('form[lay-filter=searchForm]').serialize();
+        window.open('../../paper/export?' + params);
+      });
+
+      window.refreshTable = function() {
+        table.reload(TABLE_ID);
+      };
+    });
+  })();
+  </script>
+</body>
+</html>

@@ -1,0 +1,104 @@
+/* miniprogram/pages/login/index.wxss */
+.login-page {
+  min-height: 100vh;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.login-header {
+  padding: 120rpx 0 80rpx;
+  text-align: center;
+}
+
+.logo {
+  width: 160rpx;
+  height: 160rpx;
+  background: #fff;
+  border-radius: 40rpx;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 0 auto 32rpx;
+  box-shadow: 0 8rpx 32rpx rgba(0, 0, 0, 0.2);
+}
+
+.logo-text {
+  font-size: 40rpx;
+  font-weight: 700;
+  color: #667eea;
+}
+
+.slogan {
+  color: rgba(255, 255, 255, 0.9);
+  font-size: 28rpx;
+}
+
+.login-form {
+  width: 100%;
+  padding: 0 48rpx;
+}
+
+.input-group {
+  background: #fff;
+  border-radius: 24rpx;
+  padding: 16rpx 0;
+  margin-bottom: 40rpx;
+  box-shadow: 0 8rpx 32rpx rgba(0, 0, 0, 0.15);
+}
+
+.input-item {
+  display: flex;
+  align-items: center;
+  padding: 24rpx 32rpx;
+  border-bottom: 1rpx solid #f0f0f0;
+}
+
+.input-item:last-child {
+  border-bottom: none;
+}
+
+.input-icon {
+  font-size: 36rpx;
+  color: #999;
+  margin-right: 20rpx;
+}
+
+.input-field {
+  flex: 1;
+  height: 60rpx;
+  font-size: 30rpx;
+  color: #333;
+}
+
+.btn-login {
+  height: 96rpx;
+  background: #fff;
+  color: #667eea;
+  border-radius: 48rpx;
+  font-size: 36rpx;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 8rpx 32rpx rgba(0, 0, 0, 0.15);
+}
+
+.btn-login:active {
+  transform: scale(0.98);
+}
+
+.btn-login.loading {
+  opacity: 0.7;
+}
+
+.login-footer {
+  text-align: center;
+  margin-top: 40rpx;
+}
+
+.register-link {
+  color: rgba(255, 255, 255, 0.9);
+  font-size: 28rpx;
+}
