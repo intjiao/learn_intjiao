@@ -1,4 +1,4 @@
-<img width="1920" height="911" alt="image" src="https://github.com/user-attachments/assets/faf02857-df6f-45dd-ab85-7c938b53017b" /># Peixun · 在线培训考试系统
+<img width="1920" height="911" alt="image" src="https://github.com/user-attachments/assets/a8a19f32-1f5f-44b5-8a39-2b6375d91ac4" /># Peixun · 在线培训考试系统
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 [![PHP](https://img.shields.io/badge/PHP-7.4%2B-777BB4.svg)](https://www.php.net/)
