@@ -1,4 +1,4 @@
-# Peixun · 在线培训考试系统
+<img width="1920" height="911" alt="image" src="https://github.com/user-attachments/assets/faf02857-df6f-45dd-ab85-7c938b53017b" /># Peixun · 在线培训考试系统
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 [![PHP](https://img.shields.io/badge/PHP-7.4%2B-777BB4.svg)](https://www.php.net/)
@@ -12,6 +12,31 @@
 另外作为开发者的一员希望给大家做些贡献
 
 开发之前搜了很多类似的项目，都是打着开源的口号实际上批量导入试题都需要付费买商业版。我直接开发了一套给各位同仁放心开发使用，不需要任何授权点个星即可
+
+## 系统相关页面截图
+<img width="1920" height="911" alt="image" src="https://github.com/user-attachments/assets/a8a19f32-1f5f-44b5-8a39-2b6375d91ac4" />
+
+<img width="1920" height="911" alt="image" src="https://github.com/user-attachments/assets/c0e51297-4f77-4d1b-8b72-b202b72bcd31" />
+<img width="1920" height="911" alt="image" src="https://github.com/user-attachments/assets/a1cfc63c-415a-441e-aece-be788f1f3e91" />
+<img width="1920" height="911" alt="image" src="https://github.com/user-attachments/assets/1e02f25e-ed7c-4884-a4e9-c5b4654f7861" />
+<img width="1920" height="911" alt="image" src="https://github.com/user-attachments/assets/8bbe3334-d5ad-4644-abe1-3327e460574c" />
+<img width="378" height="820" alt="image" src="https://github.com/user-attachments/assets/f362bb83-5efe-4098-99ac-5ef29c62c8c4" />
+<img width="378" height="820" alt="image" src="https://github.com/user-attachments/assets/ad004cd2-76d4-4031-a5da-ba6ac512cdb4" />
+<img width="363" height="679" alt="image" src="https://github.com/user-attachments/assets/586cf2b4-1852-49de-a188-8554cda78afd" />
+<img width="380" height="733" alt="image" src="https://github.com/user-attachments/assets/46ce6636-9b11-4c9f-8f07-ec87770b5f89" />
+<img width="374" height="810" alt="image" src="https://github.com/user-attachments/assets/605f5f73-c5c7-40ae-92ba-8d4dcdf4f355" />
+<img width="379" height="752" alt="image" src="https://github.com/user-attachments/assets/98dba3b6-6d1b-4a50-b9c5-3c66fc4a17bd" />
+<img width="378" height="820" alt="image" src="https://github.com/user-attachments/assets/d70d7811-efbc-4cce-b111-4381b87b6103" />
+<img width="1920" height="911" alt="image" src="https://github.com/user-attachments/assets/20bcdb04-ae6f-436a-8fcc-51980f4ad84c" />
+
+
+
+
+
+
+
+
+
 
 
 
