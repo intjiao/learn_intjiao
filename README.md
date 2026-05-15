@@ -1,4 +1,4 @@
-# Peixun · 在线培训考试系统
+<img width="1440" height="1296" alt="cb8f227aa094abfb4642776876447430" src="https://github.com/user-attachments/assets/2b3b0d9e-ecd7-40cf-8708-03288d04e059" /># Peixun · 在线培训考试系统
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 [![PHP](https://img.shields.io/badge/PHP-7.4%2B-777BB4.svg)](https://www.php.net/)
@@ -174,6 +174,13 @@ POST  /admin/paper/{id}/publish   # 发布试卷
 ## 许可证
 
 [MIT License](LICENSE)
+
+## 提供有偿答疑部署或有二次开发需求，可同我联系
+<img width="1440" height="1296" alt="a90c5cbbc6b975b3be307cf570475285" src="https://github.com/user-attachments/assets/454ecedb-1df8-4ece-818d-3062062c8b8a" />
+
+
+
+
 
 ## 贡献
 
