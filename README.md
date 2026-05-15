@@ -209,6 +209,7 @@ POST  /admin/paper/{id}/publish   # 发布试卷
 
 ## 提供有偿答疑部署或二次开发需求，可同我联系：
 常用技术栈：Php Java python Gis Vue等常用开发语言及框架 
+
 VX：int_float_v
 
 
@@ -216,10 +217,3 @@ VX：int_float_v
 ##后期计划
 这只是个初步版本，我会持续迭代更新。也会开发出其他项目为开源做贡献为爱发电
 
-## 贡献
-
-欢迎以 Issue / Pull Request 的形式参与改进。提交前请确保：
-
-- 代码风格与现有保持一致；
-- 涉及数据库结构的改动放在 `database/migrations/` 增量 SQL；
-- 不要把 `.env`、`vendor/`、`node_modules/`、`runtime/` 之类文件加入提交。
