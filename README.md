@@ -176,7 +176,8 @@ POST  /admin/paper/{id}/publish   # 发布试卷
 [MIT License](LICENSE)
 
 ## 提供有偿答疑部署或有二次开发需求，可同我联系
-<img width="1440" height="1296" alt="a90c5cbbc6b975b3be307cf570475285" src="https://github.com/user-attachments/assets/454ecedb-1df8-4ece-818d-3062062c8b8a" />
+<img width="302" height="280" alt="image" src="https://github.com/user-attachments/assets/9a4d241d-0759-4f3a-94ad-592494aed751" />
+
 
 
 
